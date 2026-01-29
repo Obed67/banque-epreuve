@@ -2,8 +2,6 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Lock, Mail } from 'lucide-react';
-import Card from '../../components/Card';
 import Button from '../../components/Button';
 
 export default function AdminLoginPage() {

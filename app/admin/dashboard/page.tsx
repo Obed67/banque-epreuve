@@ -6,12 +6,8 @@ import {
   Clock,
   CheckCircle,
   XCircle,
-  Calendar,
-  User,
 } from 'lucide-react';
-import Card from '../../components/Card';
 import Badge from '../../components/Badge';
-import Button from '../../components/Button';
 
 const mockDocuments = [
   {
