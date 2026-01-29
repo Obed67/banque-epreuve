@@ -95,7 +95,7 @@ export default function SoumettreDocumentPage() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <Card className="p-6 md:p-8 lg:col-span-2">
+          <Card className="p-6 md:p-8 lg:col-span-2 shadow-md">
             <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label
@@ -264,7 +264,7 @@ export default function SoumettreDocumentPage() {
               </div>
             </div>
 
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="bg-blue-50 border border-blue-100 rounded-lg p-4">
               <p className="text-sm text-blue-800">
                 <strong>Note:</strong> Tous les documents soumis seront vérifiés
                 par l'administration avant d'être publiés. Assurez-vous que
@@ -273,7 +273,7 @@ export default function SoumettreDocumentPage() {
             </div>
 
             <div className="flex gap-4">
-              <Button type="submit" size="lg" className="w-full text-white">
+              <Button type="submit" size="lg" className="w-full text-white bg-[#0077d2] hover:bg-[#0062b0]">
                 Soumettre le document
               </Button>
             </div>
@@ -281,112 +281,108 @@ export default function SoumettreDocumentPage() {
         </Card>
 
         <div className="space-y-6">
-          <Card className="p-6 bg-blue-50 border-blue-200">
-            <div className="text-center mb-4">
-              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-[#0077d2] text-white text-2xl mb-2">
-                ℹ️
+          <Card className="p-0 overflow-hidden border-0 shadow-lg ring-1 ring-black/5">
+            {/* Header Unified */}
+            <div className="bg-[#0077d2] p-6 text-white text-center">
+              <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-white/20 backdrop-blur-sm text-2xl mb-3">
+                📝
               </div>
-              <h3 className="text-base font-semibold text-[#0077d2] mb-3">
-                Processus de validation
-              </h3>
+              <h3 className="text-xl font-bold">Informations Clés</h3>
+              <p className="text-blue-100 text-sm mt-1">Guide pour une soumission réussie</p>
             </div>
-            <div className="space-y-3">
-              <div className="flex items-center text-sm text-gray-700">
-                <span className="flex-shrink-0 w-8 h-8 rounded-full bg-[#0077d2] text-white flex items-center justify-center mr-3 font-bold text-xs">1</span>
-                <span>Soumission du document</span>
-              </div>
-              <div className="flex items-center text-sm text-gray-700">
-                <span className="flex-shrink-0 w-8 h-8 rounded-full bg-[#0077d2] text-white flex items-center justify-center mr-3 font-bold text-xs">2</span>
-                <span>Vérification par l'équipe</span>
-              </div>
-              <div className="flex items-center text-sm text-gray-700">
-                <span className="flex-shrink-0 w-8 h-8 rounded-full bg-[#1cb427] text-white flex items-center justify-center mr-3 font-bold text-xs">3</span>
-                <span>Publication (24-48h)</span>
-              </div>
-            </div>
-          </Card>
 
-          <Card className="p-6 bg-green-50 border-green-200">
-            <div className="text-center mb-4">
-              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-[#1cb427] text-white text-2xl mb-2">
-                ✓
+            {/* Content Sections */}
+            <div className="divide-y divide-gray-100">
+              
+              {/* Section Impact */}
+              <div className="p-6 bg-white hover:bg-gray-50 transition-colors">
+                <div className="flex items-center mb-4">
+                  <h4 className="font-bold text-gray-800">Impact de la contribution</h4>
+                </div>
+                <div className="space-y-3 pl-11">
+                  <div className="flex items-start text-sm text-gray-600">
+                    <span className="text-purple-600 mr-2 font-bold">•</span>
+                    <span>Aide pour <strong className="text-gray-900">500+ étudiants</strong></span>
+                  </div>
+                  <div className="flex items-start text-sm text-gray-600">
+                     <span className="text-purple-600 mr-2 font-bold">•</span>
+                    <span>Succès académique commun</span>
+                  </div>
+                  <div className="flex items-start text-sm text-gray-600">
+                     <span className="text-purple-600 mr-2 font-bold">•</span>
+                    <span>Partage de connaissances</span>
+                  </div>
+                </div>
               </div>
-              <h3 className="text-base font-semibold text-[#1cb427] mb-3">
-                Formats acceptés
-              </h3>
-            </div>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between text-sm text-gray-700">
-                <span className="font-medium">📄 PDF</span>
-                <span className="text-xs bg-green-200 px-2 py-1 rounded">Recommandé</span>
-              </div>
-              <div className="flex items-center justify-between text-sm text-gray-700">
-                <span className="font-medium">📝 DOC/DOCX</span>
-                <span className="text-xs bg-green-200 px-2 py-1 rounded">Accepté</span>
-              </div>
-              <div className="border-t border-green-200 pt-3 mt-3">
-                <p className="text-xs text-gray-600 text-center">
-                  Taille maximale: <strong>10 MB</strong>
-                </p>
-              </div>
-            </div>
-          </Card>
 
-          <Card className="p-6 bg-purple-50 border-purple-200">
-            <div className="text-center mb-4">
-              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-purple-600 text-white text-2xl mb-2">
-                🎯
+              {/* Section Directives */}
+              <div className="p-6 bg-white hover:bg-gray-50 transition-colors">
+                <div className="flex items-center mb-4">
+                  <h4 className="font-bold text-gray-800">Directives à suivre</h4>
+                </div>
+                <ul className="space-y-2.5 text-sm text-gray-600 pl-11">
+                  <li className="flex items-start">
+                    <span className="text-green-500 mr-2">✓</span>
+                    <span>Document lisible & net</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-green-500 mr-2">✓</span>
+                    <span>Contenu exact & complet</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-green-500 mr-2">✓</span>
+                    <span>Nom de fichier descriptif</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-green-500 mr-2">✓</span>
+                    <span>Format PDF</span>
+                  </li>
+                  <li className="flex items-start text-orange-600">
+                    <span className="mr-2">✗</span>
+                    <span>Rejet si non conforme</span>
+                  </li>
+                </ul>
               </div>
-              <h3 className="text-base font-semibold text-purple-600 mb-3">
-                Impact de votre contribution
-              </h3>
-            </div>
-            <div className="space-y-3">
-              <div className="flex items-start text-sm text-gray-700">
-                <span className="text-purple-600 mr-2">👥</span>
-                <span>500+ étudiants bénéficieront de votre document</span>
-              </div>
-              <div className="flex items-start text-sm text-gray-700">
-                <span className="text-purple-600 mr-2">🏆</span>
-                <span>Contribuez au succès académique</span>
-              </div>
-              <div className="flex items-start text-sm text-gray-700">
-                <span className="text-purple-600 mr-2">💡</span>
-                <span>Partagez vos connaissances</span>
-              </div>
-            </div>
-          </Card>
 
-          <Card className="p-6 bg-orange-50 border-orange-200">
-            <h3 className="text-base font-semibold text-orange-600 mb-4">
-              📋 Directives importantes
-            </h3>
-            <ul className="space-y-2.5 text-sm text-gray-700">
-              <li className="flex items-start">
-                <span className="text-[#1cb427] mr-2 font-bold flex-shrink-0">✓</span>
-                <span>Document lisible et de bonne qualité</span>
-              </li>
-              <li className="flex items-start">
-                <span className="text-[#1cb427] mr-2 font-bold flex-shrink-0">✓</span>
-                <span>Informations exactes et complètes</span>
-              </li>
-              <li className="flex items-start">
-                <span className="text-[#1cb427] mr-2 font-bold flex-shrink-0">✓</span>
-                <span>Pas de contenu confidentiel</span>
-              </li>
-              <li className="flex items-start">
-                <span className="text-[#1cb427] mr-2 font-bold flex-shrink-0">✓</span>
-                <span>Nom du fichier descriptif</span>
-              </li>
-              <li className="flex items-start">
-                <span className="text-[#1cb427] mr-2 font-bold flex-shrink-0">✓</span>
-                <span>Respecter les droits d'auteur</span>
-              </li>
-            </ul>
-            <div className="mt-4 pt-3 border-t border-orange-200">
-              <p className="text-xs text-gray-600">
-                ⚠️ Les documents non conformes seront rejetés
-              </p>
+              {/* Section Processus */}
+              <div className="p-6 bg-blue-50/50">
+                 <div className="flex items-center mb-4">
+                    <h4 className="font-bold text-gray-800">Validation</h4>
+                </div>
+                <div className="flex items-center justify-between relative px-2">
+                  
+                  {/* Step 1 */}
+                  <div className="relative z-10 flex flex-col items-center">
+                    <div className="w-8 h-8 rounded-full bg-[#0077d2] text-white flex items-center justify-center text-xs font-bold ring-4 ring-white shadow-sm">
+                      1
+                    </div>
+                    <span className="text-[10px] font-bold text-gray-600 mt-1 uppercase tracking-tight">Envoi</span>
+                  </div>
+
+                  {/* Connector 1-2 */}
+                  <div className="flex-1 h-0.5 bg-gray-200 mx-2 relative top-[-10px]"></div>
+
+                  {/* Step 2 */}
+                  <div className="relative z-10 flex flex-col items-center">
+                    <div className="w-8 h-8 rounded-full bg-white border-2 border-[#0077d2] text-[#0077d2] flex items-center justify-center text-xs font-bold ring-4 ring-white shadow-sm">
+                      2
+                    </div>
+                    <span className="text-[10px] font-bold text-gray-600 mt-1 uppercase tracking-tight">Verif</span>
+                  </div>
+
+                  {/* Connector 2-3 */}
+                  <div className="flex-1 h-0.5 bg-gray-200 mx-2 relative top-[-10px]"></div>
+
+                  {/* Step 3 */}
+                  <div className="relative z-10 flex flex-col items-center">
+                    <div className="w-8 h-8 rounded-full bg-[#1cb427] text-white flex items-center justify-center text-xs font-bold ring-4 ring-white shadow-sm">
+                      3
+                    </div>
+                    <span className="text-[10px] font-bold text-gray-600 mt-1 uppercase tracking-tight">Publié</span>
+                  </div>
+                </div>
+              </div>
+
             </div>
           </Card>
         </div>
