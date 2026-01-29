@@ -122,79 +122,81 @@ export default function EpreuvesPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="container mx-auto px-4">
-        <div className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-2">
-            Épreuves
+    <div className="bg-gray-50 py-16 min-h-full">
+      <div className="container mx-auto px-4 max-w-7xl">
+        <div className="text-center mb-12">
+          <h1 className="text-4xl md:text-5xl font-extrabold text-[#0f172a] mb-4 tracking-tight">
+            Banque d'Épreuves
           </h1>
-          <p className="text-gray-600">
-            Consultez et téléchargez les épreuves passées
+          <p className="text-xl text-gray-500 max-w-2xl mx-auto">
+            Accédez à toutes les épreuves des sessions précédentes pour préparer vos examens.
           </p>
         </div>
 
         <FilterBar filters={filters} onFilterChange={handleFilterChange} />
 
-        <div className="mb-4 text-sm text-gray-600">
-          {filteredEpreuves.length} épreuve(s) trouvée(s)
+        <div className="mb-6 flex justify-between items-center">
+          <div className="text-sm font-medium text-gray-500">
+            {filteredEpreuves.length} document{filteredEpreuves.length > 1 ? 's' : ''} trouvé{filteredEpreuves.length > 1 ? 's' : ''}
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredEpreuves.map((epreuve) => (
-            <Card key={epreuve.id} hover className="p-6 flex flex-col">
+            <div key={epreuve.id} className="bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-200 p-6 flex flex-col group">
               <div className="flex justify-between items-start mb-4">
-                <h3 className="text-lg font-semibold text-gray-800 flex-1">
-                  {epreuve.titre}
-                </h3>
+                <div className="flex-1 pr-4">
+                  <h3 className="text-lg font-bold text-[#0f172a] group-hover:text-[#0077d2] transition-colors line-clamp-2">
+                    {epreuve.titre}
+                  </h3>
+                </div>
                 <Badge
                   variant={epreuve.statut === "Validé" ? "success" : "warning"}
+                  className="shrink-0"
                 >
                   {epreuve.statut}
                 </Badge>
               </div>
 
-              <div className="space-y-2 mb-4 flex-grow">
+              <div className="space-y-3 mb-6 flex-grow">
                 <div className="flex items-center text-sm text-gray-600">
-                  <BookOpen className="h-4 w-4 mr-2 text-[#0077d2]" />
-                  <span className="font-medium">Filière:</span>
-                  <span className="ml-2">{epreuve.filiere}</span>
+                  <span className="w-20 font-medium text-gray-400">Filière :</span>
+                  <span className="font-medium text-gray-900">{epreuve.filiere}</span>
                 </div>
 
                 <div className="flex items-start text-sm text-gray-600">
-                  <BookOpen className="h-4 w-4 mr-2 mt-0.5 text-[#0077d2]" />
-                  <div className="flex-1">
-                    <span className="font-medium">UE:</span>
-                    <span className="ml-2">{epreuve.ue}</span>
-                  </div>
+                   <span className="w-20 font-medium text-gray-400 shrink-0">UE :</span>
+                   <span className="font-medium text-gray-900 line-clamp-1">{epreuve.ue}</span>
                 </div>
 
                 <div className="flex items-center text-sm text-gray-600">
-                  <Calendar className="h-4 w-4 mr-2 text-[#0077d2]" />
-                  <span className="font-medium">Année:</span>
-                  <span className="ml-2">{epreuve.annee}</span>
+                   <span className="w-20 font-medium text-gray-400">Année :</span>
+                   <span className="font-medium text-gray-900">{epreuve.annee}</span>
                 </div>
 
                 <div className="flex items-center text-sm text-gray-600">
-                  <span className="font-medium">Session:</span>
-                  <span className="ml-2">{epreuve.session}</span>
+                   <span className="w-20 font-medium text-gray-400">Session :</span>
+                   <span className="font-medium text-gray-900">{epreuve.session}</span>
                 </div>
               </div>
 
               {epreuve.statut === "Validé" && (
-                <button className="w-full flex items-center justify-center px-4 py-2 bg-[#0077d2] text-white rounded-lg hover:bg-[#0066b8] transition-colors">
+                <button className="w-full flex items-center justify-center px-4 py-3 bg-[#0077d2] text-white font-medium rounded-lg hover:bg-[#0062b0] transition-colors">
                   <Download className="h-4 w-4 mr-2" />
                   Télécharger
                 </button>
               )}
-            </Card>
+            </div>
           ))}
         </div>
 
         {filteredEpreuves.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-gray-500 text-lg">
-              Aucune épreuve trouvée avec ces critères
-            </p>
+          <div className="text-center py-20 bg-white rounded-xl border border-gray-100 dashed">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-50 mb-4">
+              <BookOpen className="h-8 w-8 text-gray-400" />
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-1">Aucune épreuve trouvée</h3>
+            <p className="text-gray-500">Essayez de modifier vos filtres de recherche</p>
           </div>
         )}
       </div>

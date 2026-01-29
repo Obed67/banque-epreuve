@@ -1,4 +1,3 @@
-import { FileText } from 'lucide-react';
 
 export default function Footer() {
   return (
@@ -7,7 +6,6 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
             <div className="flex items-center space-x-2 mb-4">
-              <FileText className="h-6 w-6 text-[#0077d2]" />
               <span className="text-lg font-bold text-gray-800">
                 Portail d'Épreuve
               </span>

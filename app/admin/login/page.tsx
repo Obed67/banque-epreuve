@@ -35,31 +35,25 @@ export default function AdminLoginPage() {
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4">
       <div className="max-w-md w-full">
-        <div className="text-center mb-8">
-          <div className="flex justify-center mb-4">
-            <div className="bg-[#0077d2] w-16 h-16 rounded-full flex items-center justify-center">
-              <Lock className="h-8 w-8 text-white" />
-            </div>
-          </div>
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">
-            Administration
+        <div className="text-center mb-10">
+          <h1 className="text-3xl font-extrabold text-[#0f172a] mb-3 tracking-tight">
+            Espace Administration
           </h1>
-          <p className="text-gray-600">
-            Connectez-vous pour accéder au tableau de bord
+          <p className="text-gray-500">
+            Connectez-vous pour gérer le contenu de la plateforme
           </p>
         </div>
 
-        <Card className="p-8">
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label
                 htmlFor="email"
                 className="block text-sm font-medium text-gray-700 mb-2"
               >
-                Email
+                Email professionnel
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <input
                   type="email"
                   id="email"
@@ -67,8 +61,8 @@ export default function AdminLoginPage() {
                   value={formData.email}
                   onChange={handleChange}
                   required
-                  placeholder="admin@portail.com"
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0077d2] focus:border-transparent"
+                  placeholder="nom@universite.com"
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0077d2] focus:border-transparent transition-all"
                 />
               </div>
             </div>
@@ -81,7 +75,6 @@ export default function AdminLoginPage() {
                 Mot de passe
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <input
                   type="password"
                   id="password"
@@ -90,28 +83,31 @@ export default function AdminLoginPage() {
                   onChange={handleChange}
                   required
                   placeholder="••••••••"
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0077d2] focus:border-transparent"
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0077d2] focus:border-transparent transition-all"
                 />
               </div>
             </div>
 
             {error && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-                <p className="text-sm text-red-800">{error}</p>
+              <div className="bg-red-50 border border-red-100 rounded-lg p-4 flex items-center">
+                <div className="w-1.5 h-1.5 rounded-full bg-red-500 mr-3"></div>
+                <p className="text-sm text-red-700 font-medium">{error}</p>
               </div>
             )}
 
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-              <p className="text-xs text-blue-800">
-                <strong>Démo:</strong> email: admin@portail.com / mot de passe: admin123
+            <div className="bg-blue-50 border border-blue-100 rounded-lg p-4">
+              <p className="text-xs text-blue-700 flex flex-col gap-1">
+                <span className="font-semibold uppercase tracking-wider text-blue-900/60">Identifiants de démonstration</span>
+                <span className="font-mono">admin@portail.com</span>
+                <span className="font-mono">admin123</span>
               </p>
             </div>
 
-            <Button type="submit" size="lg" className="w-full">
-              Se connecter
+            <Button type="submit" size="lg" className="w-full h-12 bg-[#0077d2] hover:bg-[#0062b0] rounded-lg font-medium shadow-sm shadow-blue-900/10">
+              Accéder au tableau de bord
             </Button>
           </form>
-        </Card>
+        </div>
       </div>
     </div>
   );

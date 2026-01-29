@@ -95,182 +95,157 @@ export default function AdminDashboardPage() {
     valides: mockDocuments.length - documents.length,
   };
 
+
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="container mx-auto px-4">
-        <div className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-2">
-            Tableau de bord Admin
+    <div className="min-h-screen bg-gray-50 py-12">
+      <div className="container mx-auto px-4 max-w-7xl">
+        <div className="text-center mb-12">
+          <h1 className="text-3xl md:text-4xl font-extrabold text-[#0f172a] mb-3">
+            Tableau de Bord
           </h1>
-          <p className="text-gray-600">
-            Gérez les documents soumis par les étudiants
+          <p className="text-gray-500">
+            Vue d'ensemble et gestion des documents académiques
           </p>
         </div>
 
         {notification && (
           <div
-            className={`mb-6 p-4 rounded-lg border ${
+            className={`fixed bottom-4 right-4 p-4 rounded-xl shadow-lg border animate-slide-up z-50 flex items-center ${
               notification.type === 'success'
-                ? 'bg-green-50 border-green-200 text-green-800'
-                : 'bg-red-50 border-red-200 text-red-800'
+                ? 'bg-white border-green-100 text-green-700'
+                : 'bg-white border-red-100 text-red-700'
             }`}
           >
-            <div className="flex items-center">
+            <div className={`p-2 rounded-full mr-3 ${
+               notification.type === 'success' ? 'bg-green-50' : 'bg-red-50'
+            }`}>
               {notification.type === 'success' ? (
-                <CheckCircle className="h-5 w-5 mr-2" />
+                <CheckCircle className="h-5 w-5" />
               ) : (
-                <XCircle className="h-5 w-5 mr-2" />
+                <XCircle className="h-5 w-5" />
               )}
-              <p className="font-medium">{notification.message}</p>
             </div>
+            <p className="font-medium pr-2">{notification.message}</p>
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 mb-1">Total soumis</p>
-                <p className="text-3xl font-bold text-gray-800">{stats.total}</p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+          <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
+            <div className="flex items-center justify-between mb-4">
+              <div className="bg-blue-50 p-3 rounded-lg">
+                <FileText className="h-6 w-6 text-[#0077d2]" />
               </div>
-              <div className="bg-[#0077d2] w-12 h-12 rounded-lg flex items-center justify-center">
-                <FileText className="h-6 w-6 text-white" />
-              </div>
+              <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Total</span>
             </div>
-          </Card>
+            <div className="text-4xl font-extrabold text-[#0f172a] mb-1">{stats.total}</div>
+            <p className="text-sm text-gray-500">Documents soumis</p>
+          </div>
 
-          <Card className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 mb-1">En attente</p>
-                <p className="text-3xl font-bold text-[#ffa446]">
-                  {stats.enAttente}
-                </p>
+          <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm ring-1 ring-orange-100">
+            <div className="flex items-center justify-between mb-4">
+              <div className="bg-orange-50 p-3 rounded-lg">
+                <Clock className="h-6 w-6 text-[#ffa446]" />
               </div>
-              <div className="bg-[#ffa446] w-12 h-12 rounded-lg flex items-center justify-center">
-                <Clock className="h-6 w-6 text-white" />
-              </div>
+              <span className="text-xs font-bold text-orange-400 uppercase tracking-wider">Prioritaire</span>
             </div>
-          </Card>
+            <div className="text-4xl font-extrabold text-[#0f172a] mb-1">{stats.enAttente}</div>
+            <p className="text-sm text-gray-500">En attente de validation</p>
+          </div>
 
-          <Card className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 mb-1">Validés</p>
-                <p className="text-3xl font-bold text-[#1cb427]">
-                  {stats.valides}
-                </p>
+          <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
+             <div className="flex items-center justify-between mb-4">
+              <div className="bg-green-50 p-3 rounded-lg">
+                <CheckCircle className="h-6 w-6 text-[#1cb427]" />
               </div>
-              <div className="bg-[#1cb427] w-12 h-12 rounded-lg flex items-center justify-center">
-                <CheckCircle className="h-6 w-6 text-white" />
-              </div>
+               <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Complété</span>
             </div>
-          </Card>
+            <div className="text-4xl font-extrabold text-[#0f172a] mb-1">{stats.valides}</div>
+            <p className="text-sm text-gray-500">Documents validés</p>
+          </div>
         </div>
 
-        <div className="mb-6">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">
-            Documents en attente de validation
+        <div className="mb-6 flex items-center justify-between">
+          <h2 className="text-xl font-bold text-[#0f172a]">
+            Documents à traiter
           </h2>
+          <span className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-xs font-bold">
+            {documents.length} restant(s)
+          </span>
         </div>
 
         {documents.length === 0 ? (
-          <Card className="p-12 text-center">
-            <CheckCircle className="h-16 w-16 text-[#1cb427] mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-800 mb-2">
-              Aucun document en attente
+          <div className="bg-white rounded-xl border border-gray-100 dashed p-12 text-center">
+            <div className="bg-green-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+              <CheckCircle className="h-8 w-8 text-[#1cb427]" />
+            </div>
+            <h3 className="text-lg font-bold text-gray-800 mb-2">
+              Tout est à jour !
             </h3>
-            <p className="text-gray-600">
-              Tous les documents ont été traités
+            <p className="text-gray-500">
+              Aucun document en attente de validation pour le moment.
             </p>
-          </Card>
+          </div>
         ) : (
-          <div className="space-y-4">
+          <div className="grid gap-4">
             {documents.map((doc) => (
-              <Card key={doc.id} className="p-6">
-                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-start gap-3 mb-4">
-                      <div className="bg-[#0077d2] w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <FileText className="h-5 w-5 text-white" />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="text-lg font-semibold text-gray-800 mb-2">
+              <div key={doc.id} className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-200">
+                <div className="flex flex-col lg:flex-row gap-6">
+                  {/* Icon & Main Info */}
+                  <div className="flex items-start gap-4 flex-1">
+                    <div className="bg-blue-50 w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0">
+                      <FileText className="h-6 w-6 text-[#0077d2]" />
+                    </div>
+                    <div className="space-y-3 flex-1">
+                      <div>
+                        <h3 className="text-lg font-bold text-[#0f172a] mb-2">
                           {doc.titre}
                         </h3>
-                        <div className="flex flex-wrap gap-2 mb-3">
-                          <Badge variant="info">{doc.type}</Badge>
-                          <Badge variant="warning">{doc.statut}</Badge>
+                        <div className="flex flex-wrap gap-2">
+                          <Badge variant="info-subtle">{doc.type}</Badge>
+                          <Badge variant="warning-subtle">{doc.statut}</Badge>
                         </div>
                       </div>
-                    </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                      <div className="flex items-center text-gray-600">
-                        <FileText className="h-4 w-4 mr-2 text-[#0077d2]" />
-                        <span className="font-medium">Filière:</span>
-                        <span className="ml-2">{doc.filiere}</span>
-                      </div>
-
-                      <div className="flex items-center text-gray-600">
-                        <FileText className="h-4 w-4 mr-2 text-[#0077d2]" />
-                        <span className="font-medium">UE:</span>
-                        <span className="ml-2">{doc.ue}</span>
-                      </div>
-
-                      <div className="flex items-center text-gray-600">
-                        <Calendar className="h-4 w-4 mr-2 text-[#0077d2]" />
-                        <span className="font-medium">Année:</span>
-                        <span className="ml-2">{doc.annee}</span>
-                      </div>
-
-                      {doc.session && (
-                        <div className="flex items-center text-gray-600">
-                          <span className="font-medium">Session:</span>
-                          <span className="ml-2">{doc.session}</span>
-                        </div>
-                      )}
-
-                      <div className="flex items-center text-gray-600">
-                        <User className="h-4 w-4 mr-2 text-[#0077d2]" />
-                        <span className="font-medium">Soumis par:</span>
-                        <span className="ml-2">{doc.soumis_par}</span>
-                      </div>
-
-                      <div className="flex items-center text-gray-600">
-                        <Calendar className="h-4 w-4 mr-2 text-[#0077d2]" />
-                        <span className="font-medium">Date:</span>
-                        <span className="ml-2">
-                          {new Date(doc.date_soumission).toLocaleDateString(
-                            'fr-FR'
-                          )}
-                        </span>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-2">
+                         <div className="text-sm">
+                            <p className="text-xs text-gray-400 font-medium uppercase mb-0.5">Filière</p>
+                            <p className="font-medium text-gray-700">{doc.filiere}</p>
+                         </div>
+                         <div className="text-sm">
+                            <p className="text-xs text-gray-400 font-medium uppercase mb-0.5">UE</p>
+                            <p className="font-medium text-gray-700">{doc.ue}</p>
+                         </div>
+                         <div className="text-sm">
+                            <p className="text-xs text-gray-400 font-medium uppercase mb-0.5">Soumis par</p>
+                            <p className="font-medium text-gray-700">{doc.soumis_par}</p>
+                         </div>
+                         <div className="text-sm">
+                            <p className="text-xs text-gray-400 font-medium uppercase mb-0.5">Date</p>
+                            <p className="font-medium text-gray-700">{new Date(doc.date_soumission).toLocaleDateString('fr-FR')}</p>
+                         </div>
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex lg:flex-col gap-3 lg:w-40">
-                    <Button
-                      variant="success"
-                      size="sm"
+                  {/* Actions */}
+                  <div className="flex lg:flex-col gap-3 lg:w-48 lg:border-l lg:border-gray-50 lg:pl-6 justify-center">
+                    <button
                       onClick={() => handleValidate(doc.id)}
-                      className="flex-1 lg:flex-none"
+                      className="w-full flex items-center justify-center px-4 py-2.5 bg-[#1cb427] text-white text-sm font-medium rounded-lg hover:bg-[#158f1f] transition-colors"
                     >
                       <CheckCircle className="h-4 w-4 mr-2" />
                       Valider
-                    </Button>
-                    <Button
-                      variant="warning"
-                      size="sm"
+                    </button>
+                    <button
                       onClick={() => handleReject(doc.id)}
-                      className="flex-1 lg:flex-none"
+                      className="w-full flex items-center justify-center px-4 py-2.5 bg-white border border-gray-200 text-gray-600 text-sm font-medium rounded-lg hover:bg-red-50 hover:text-red-600 hover:border-red-100 transition-all"
                     >
                       <XCircle className="h-4 w-4 mr-2" />
                       Rejeter
-                    </Button>
+                    </button>
                   </div>
                 </div>
-              </Card>
+              </div>
             ))}
           </div>
         )}
