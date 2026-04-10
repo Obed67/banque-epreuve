@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useEffect, useMemo, useState } from 'react';
-import { supabase } from '@/lib/supabaseClient';
+import { useEffect, useMemo, useState } from "react";
+import { supabase } from "@/lib/supabaseClient";
 
 export interface Ressource {
   id: string;
@@ -20,19 +20,28 @@ export function useRessourcesData() {
   const [filteredRessources, setFilteredRessources] = useState<Ressource[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const normalizeType = (value: string) =>
+    value
+      .trim()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase();
+
   useEffect(() => {
     const fetchRessources = async () => {
       setLoading(true);
       const { data, error } = await supabase
-        .from('epreuves')
-        .select('*')
-        .eq('statut', 'Validé')
-        .neq('type', 'Épreuve')
-        .order('created_at', { ascending: false });
+        .from("epreuves")
+        .select("*")
+        .eq("statut", "Validé")
+        .order("created_at", { ascending: false });
 
       if (!error) {
-        setRessources(data || []);
-        setFilteredRessources(data || []);
+        const onlyRessources = (data || []).filter(
+          (item) => normalizeType(item.type) !== "epreuve",
+        );
+        setRessources(onlyRessources);
+        setFilteredRessources(onlyRessources);
       }
       setLoading(false);
     };
@@ -42,18 +51,34 @@ export function useRessourcesData() {
 
   const filters = useMemo(
     () => [
-      { label: 'Type', name: 'type', options: Array.from(new Set(ressources.map((r) => r.type).filter(Boolean))) },
-      { label: 'Filière', name: 'filiere', options: Array.from(new Set(ressources.map((r) => r.filiere))) },
-      { label: 'Année', name: 'annee', options: Array.from(new Set(ressources.map((r) => r.annee))) },
+      {
+        label: "Type",
+        name: "type",
+        options: Array.from(
+          new Set(ressources.map((r) => r.type).filter(Boolean)),
+        ),
+      },
+      {
+        label: "Filière",
+        name: "filiere",
+        options: Array.from(new Set(ressources.map((r) => r.filiere))),
+      },
+      {
+        label: "Année",
+        name: "annee",
+        options: Array.from(new Set(ressources.map((r) => r.annee))),
+      },
     ],
-    [ressources]
+    [ressources],
   );
 
   const applyFilters = (values: Record<string, string>) => {
     let filtered = [...ressources];
     if (values.type) filtered = filtered.filter((r) => r.type === values.type);
-    if (values.filiere) filtered = filtered.filter((r) => r.filiere === values.filiere);
-    if (values.annee) filtered = filtered.filter((r) => r.annee === values.annee);
+    if (values.filiere)
+      filtered = filtered.filter((r) => r.filiere === values.filiere);
+    if (values.annee)
+      filtered = filtered.filter((r) => r.annee === values.annee);
     setFilteredRessources(filtered);
   };
 
