@@ -10,8 +10,8 @@ export default function Footer() {
               </span>
             </div>
             <p className="text-gray-600 text-sm">
-              Plateforme de gestion et de partage d&apos;épreuves et de ressources
-              académiques.
+              Plateforme de gestion et de partage d&apos;épreuves et de
+              ressources académiques.
             </p>
           </div>
 
@@ -48,7 +48,8 @@ export default function Footer() {
           <div>
             <h3 className="font-semibold text-gray-800 mb-4">Contact</h3>
             <p className="text-sm text-gray-600">
-              Pour toute question ou assistance, contactez l&apos;administration.
+              Pour toute question ou assistance, contactez
+              l&apos;administration.
             </p>
           </div>
         </div>
