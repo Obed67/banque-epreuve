@@ -20,7 +20,7 @@ export default function Home() {
               <span className="text-[#0077d2]">vos ressources académiques.</span>
             </h1>
             <p className="text-xl text-gray-500 mb-10 max-w-2xl mx-auto leading-relaxed">
-              Accédez à une base de données collaborative d'épreuves, cours et travaux dirigés. 
+              Accédez à une base de données collaborative d&apos;épreuves, cours et travaux dirigés. 
               Une plateforme conçue par des étudiants, pour les étudiants.
             </p>
             <div className="flex flex-col sm:flex-row gap-5 justify-center">
@@ -53,10 +53,10 @@ export default function Home() {
                 <FileText className="h-8 w-8" />
               </div>
               <h3 className="text-xl font-bold text-[#0f172a] mb-3 group-hover:text-[#0077d2] transition-colors">
-                Banque d'Épreuves
+                Banque d&apos;Épreuves
               </h3>
               <p className="text-gray-500 leading-relaxed mb-4">
-                Retrouvez les sujets d'examens des années précédentes, classés par filière et unité d'enseignement pour cibler vos révisions.
+                Retrouvez les sujets d&apos;examens des années précédentes, classés par filière et unité d&apos;enseignement pour cibler vos révisions.
               </p>
               <Link href="/epreuves" className="inline-flex items-center font-semibold text-[#0077d2] hover:text-[#0062b0]">
                 Consulter <ArrowRight className="ml-2 h-4 w-4" />

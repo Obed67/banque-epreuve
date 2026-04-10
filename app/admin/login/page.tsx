@@ -1,8 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { Eye, EyeOff } from 'lucide-react';
 import Button from '../../components/Button';
+import { getCurrentUser, signInWithEmail, signOut } from '@/lib/auth';
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -11,6 +14,19 @@ export default function AdminLoginPage() {
     password: '',
   });
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+
+  useEffect(() => {
+    const checkExistingAdminSession = async () => {
+      const user = await getCurrentUser();
+      if (user?.user_metadata?.role === 'admin') {
+        router.replace('/admin/dashboard');
+      }
+    };
+
+    checkExistingAdminSession();
+  }, [router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -20,13 +36,28 @@ export default function AdminLoginPage() {
     setError('');
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
+    setError('');
 
-    if (formData.email === 'admin@portail.com' && formData.password === 'admin123') {
+    try {
+      const { user } = await signInWithEmail(formData.email, formData.password);
+
+      // Check if user has admin role
+      if (user?.user_metadata?.role !== 'admin') {
+        setError('Accès refusé. Vous devez être administrateur.');
+        await signOut();
+        setLoading(false);
+        return;
+      }
+
+      // Redirect to dashboard
       router.push('/admin/dashboard');
-    } else {
-      setError('Identifiants invalides');
+    } catch (err: any) {
+      console.error('Login error:', err);
+      setError(err.message || 'Identifiants invalides');
+      setLoading(false);
     }
   };
 
@@ -59,8 +90,9 @@ export default function AdminLoginPage() {
                   value={formData.email}
                   onChange={handleChange}
                   required
+                  disabled={loading}
                   placeholder="nom@universite.com"
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0077d2] focus:border-transparent transition-all"
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0077d2] focus:border-transparent transition-all disabled:opacity-50"
                 />
               </div>
             </div>
@@ -74,15 +106,25 @@ export default function AdminLoginPage() {
               </label>
               <div className="relative">
                 <input
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   id="password"
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
                   required
+                  disabled={loading}
                   placeholder="••••••••"
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0077d2] focus:border-transparent transition-all"
+                  className="w-full px-4 py-3 pr-12 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0077d2] focus:border-transparent transition-all disabled:opacity-50"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute inset-y-0 right-0 px-3 text-gray-500 hover:text-gray-700 disabled:opacity-50"
+                  aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+                  disabled={loading}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
               </div>
             </div>
 
@@ -93,17 +135,23 @@ export default function AdminLoginPage() {
               </div>
             )}
 
-            <div className="bg-blue-50 border border-blue-100 rounded-lg p-4">
-              <p className="text-xs text-blue-700 flex flex-col gap-1">
-                <span className="font-semibold uppercase tracking-wider text-blue-900/60">Identifiants de démonstration</span>
-                <span className="font-mono">admin@portail.com</span>
-                <span className="font-mono">admin123</span>
-              </p>
-            </div>
-
-            <Button type="submit" size="lg" className="w-full h-12 bg-[#0077d2] hover:bg-[#0062b0] rounded-lg font-medium shadow-sm shadow-blue-900/10">
-              Accéder au tableau de bord
+            <Button
+              type="submit"
+              size="lg"
+              className="w-full h-12 bg-[#0077d2] hover:bg-[#0062b0] rounded-lg font-medium shadow-sm shadow-blue-900/10 disabled:opacity-50"
+              disabled={loading}
+            >
+              {loading ? 'Connexion...' : 'Connexion'}
             </Button>
+
+            <div className="flex items-center justify-between text-sm pt-1">
+              <Link href="/admin/forgot-password" className="text-[#0077d2] hover:underline">
+                Mot de passe oublié ?
+              </Link>
+              <Link href="/admin/register" className="text-gray-600 hover:text-gray-800 hover:underline">
+                Créer un compte
+              </Link>
+            </div>
           </form>
         </div>
       </div>
