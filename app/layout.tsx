@@ -4,11 +4,11 @@ import { Inter } from "next/font/google";
 import AppShell from "./components/AppShell";
 
 const inter = Inter({ subsets: ["latin"] });
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL || "https://banque-epreuve.vercel.app";
 
 export const metadata: Metadata = {
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL || "https://banque-epreuve.vercel.app",
-  ),
+  metadataBase: new URL(siteUrl),
   title: "Portail d'Épreuve",
   description:
     "Plateforme de gestion et de partage d'épreuves et de ressources académiques",
@@ -16,8 +16,7 @@ export const metadata: Metadata = {
     title: "Portail d'Épreuve",
     description:
       "Plateforme de gestion et de partage d'épreuves et de ressources académiques",
-    url:
-      process.env.NEXT_PUBLIC_SITE_URL || "https://banque-epreuve.vercel.app",
+    url: siteUrl,
     siteName: "Portail d'Épreuve",
     locale: "fr_FR",
     type: "website",
