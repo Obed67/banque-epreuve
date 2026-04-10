@@ -13,19 +13,14 @@ export const metadata: Metadata = {
   description:
     "Plateforme de gestion et de partage d'épreuves et de ressources académiques",
   openGraph: {
-    images: [
-      {
-        url: "/og-image.png",
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    images: [
-      {
-        url: "/og-image.png",
-      },
-    ],
+    title: "Portail d'Épreuve",
+    description:
+      "Plateforme de gestion et de partage d'épreuves et de ressources académiques",
+    url:
+      process.env.NEXT_PUBLIC_SITE_URL || "https://banque-epreuve.vercel.app",
+    siteName: "Portail d'Épreuve",
+    locale: "fr_FR",
+    type: "website",
   },
 };
 
