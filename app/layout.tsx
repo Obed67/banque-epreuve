@@ -6,13 +6,16 @@ import AppShell from "./components/AppShell";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL || "https://banque-epreuve.vercel.app",
+  ),
   title: "Portail d'Épreuve",
   description:
     "Plateforme de gestion et de partage d'épreuves et de ressources académiques",
   openGraph: {
     images: [
       {
-        url: "https://bolt.new/static/og_default.png",
+        url: "/og-image.png",
       },
     ],
   },
@@ -20,7 +23,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     images: [
       {
-        url: "https://bolt.new/static/og_default.png",
+        url: "/og-image.png",
       },
     ],
   },
