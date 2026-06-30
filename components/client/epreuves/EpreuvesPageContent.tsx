@@ -52,6 +52,7 @@ export default function EpreuvesPageContent() {
               {filteredEpreuves.map((epreuve) => (
                 <CatalogDocumentCard
                   key={epreuve.id}
+                  documentId={epreuve.id}
                   titre={epreuve.titre}
                   badgeLabel={epreuve.session || "Épreuve"}
                   meta={[

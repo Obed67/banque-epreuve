@@ -74,6 +74,7 @@ export default function RessourcesPageContent() {
               {filteredRessources.map((ressource) => (
                 <CatalogDocumentCard
                   key={ressource.id}
+                  documentId={ressource.id}
                   titre={ressource.titre}
                   badgeLabel={ressource.type}
                   meta={[

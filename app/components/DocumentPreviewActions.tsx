@@ -7,14 +7,17 @@ import {
   downloadDocumentFile,
   openDocumentInNewTab,
 } from "@/lib/documentStorage";
+import { trackDownload } from "@/lib/analytics";
 
 type DocumentPreviewActionsProps = {
+  documentId: string;
   filePath: string;
   downloadFileName?: string | null;
   accent?: "blue" | "green";
 };
 
 export default function DocumentPreviewActions({
+  documentId,
   filePath,
   downloadFileName,
   accent = "blue",
@@ -31,6 +34,7 @@ export default function DocumentPreviewActions({
     try {
       setLoadingNewTab(true);
       await openDocumentInNewTab(filePath);
+      trackDownload(documentId);
     } catch {
       window.alert("Impossible d'ouvrir ce document pour le moment.");
     } finally {
@@ -42,6 +46,7 @@ export default function DocumentPreviewActions({
     try {
       setLoadingDownload(true);
       await downloadDocumentFile(filePath, resolvedDownloadName);
+      trackDownload(documentId);
     } catch {
       window.alert("Impossible de télécharger ce document pour le moment.");
     } finally {

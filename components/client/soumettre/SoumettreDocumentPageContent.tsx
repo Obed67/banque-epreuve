@@ -9,6 +9,7 @@ import {
 } from "../../../lib/fileUpload";
 import { getSubmissionFieldErrors } from "../../../lib/submissionValidation";
 import { notifyAdminOfSubmission } from "../../../lib/notifySubmission";
+import { trackSubmission } from "../../../lib/analytics";
 import { useSubmissionOptions } from "../../../lib/hooks/useSubmissionOptions";
 import SubmissionForm from "./SubmissionForm";
 import SubmissionInfoCard from "./SubmissionInfoCard";
@@ -196,6 +197,10 @@ export default function SoumettreDocumentPageContent() {
         .select("id")
         .single();
       if (dbError) throw dbError;
+
+      if (insertedDocument?.id) {
+        trackSubmission(insertedDocument.id);
+      }
 
       void notifyAdminOfSubmission({
         documentId: insertedDocument?.id,

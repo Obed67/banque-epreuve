@@ -6,6 +6,7 @@ import DocumentPreviewActions from "@/app/components/DocumentPreviewActions";
 import VerifiedBadge from "@/app/components/VerifiedBadge";
 
 type CatalogDocumentCardProps = {
+  documentId: string;
   titre: string;
   badgeLabel: string;
   meta: { label: string; value: string }[];
@@ -31,6 +32,7 @@ const accentStyles = {
 };
 
 export default function CatalogDocumentCard({
+  documentId,
   titre,
   badgeLabel,
   meta,
@@ -86,6 +88,7 @@ export default function CatalogDocumentCard({
 
       <div className="mt-auto pt-3">
         <DocumentPreviewActions
+          documentId={documentId}
           filePath={filePath}
           downloadFileName={downloadFileName}
           accent={accent}
