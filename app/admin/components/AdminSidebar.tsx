@@ -63,7 +63,7 @@ export default function AdminSidebar({
         </p>
       </div>
 
-      <nav className="mt-6 space-y-2">
+      <nav className="mt-6 flex-1 space-y-2 overflow-y-auto">
         {links.map(({ href, label, icon: Icon }) => {
           const isActive = pathname === href;
           return (
@@ -141,8 +141,10 @@ export default function AdminSidebar({
         </div>
       </div>
 
-      <aside className="hidden h-full flex-col overflow-y-auto border-r border-blue-100 bg-white p-5 lg:flex">
-        <SidebarContent />
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-[290px] flex-col border-r border-blue-100 bg-white lg:flex">
+        <div className="flex h-full min-h-0 flex-col overflow-y-auto p-5">
+          <SidebarContent />
+        </div>
       </aside>
     </>
   );

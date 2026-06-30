@@ -9,13 +9,13 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const isAdminRoute = pathname.startsWith("/admin");
 
   if (isAdminRoute) {
-    return <main className="min-h-screen -mx-8">{children}</main>;
+    return <main className="min-h-dvh w-full">{children}</main>;
   }
 
   return (
     <>
       <Navbar />
-      <main className="flex-grow pt-16">{children}</main>
+      <main className="flex-grow px-4 pt-16 sm:px-6 lg:px-8">{children}</main>
       <Footer />
     </>
   );

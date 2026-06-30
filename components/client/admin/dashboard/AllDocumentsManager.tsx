@@ -23,6 +23,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "@/hooks/use-toast";
+import { formInputCompactClass } from "@/lib/form-styles";
 import { supabase } from "@/lib/supabaseClient";
 import type { DashboardDocument } from "./types";
 
@@ -186,7 +187,7 @@ export default function AllDocumentsManager({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Rechercher par titre, filière, UE, type, statut"
-            className="mb-4 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0077d2]"
+            className={`mb-4 w-full ${formInputCompactClass}`}
           />
 
           <div className="max-h-[58vh] overflow-y-auto pr-1">
@@ -205,7 +206,7 @@ export default function AllDocumentsManager({
                         onChange={(e) =>
                           setDraftValue(doc.id, "titre", e.target.value)
                         }
-                        className="rounded-md border border-gray-300 px-2 py-1.5 text-sm"
+                        className={formInputCompactClass}
                         placeholder="Titre"
                       />
                       <input
@@ -213,7 +214,7 @@ export default function AllDocumentsManager({
                         onChange={(e) =>
                           setDraftValue(doc.id, "type", e.target.value)
                         }
-                        className="rounded-md border border-gray-300 px-2 py-1.5 text-sm"
+                        className={formInputCompactClass}
                         placeholder="Type"
                       />
                       <input
@@ -221,7 +222,7 @@ export default function AllDocumentsManager({
                         onChange={(e) =>
                           setDraftValue(doc.id, "filiere", e.target.value)
                         }
-                        className="rounded-md border border-gray-300 px-2 py-1.5 text-sm"
+                        className={formInputCompactClass}
                         placeholder="Filière"
                       />
                       <input
@@ -229,7 +230,7 @@ export default function AllDocumentsManager({
                         onChange={(e) =>
                           setDraftValue(doc.id, "ue", e.target.value)
                         }
-                        className="rounded-md border border-gray-300 px-2 py-1.5 text-sm"
+                        className={formInputCompactClass}
                         placeholder="UE"
                       />
                       <input
@@ -237,7 +238,7 @@ export default function AllDocumentsManager({
                         onChange={(e) =>
                           setDraftValue(doc.id, "annee", e.target.value)
                         }
-                        className="rounded-md border border-gray-300 px-2 py-1.5 text-sm"
+                        className={formInputCompactClass}
                         placeholder="Année"
                       />
                       <input
@@ -245,7 +246,7 @@ export default function AllDocumentsManager({
                         onChange={(e) =>
                           setDraftValue(doc.id, "session", e.target.value)
                         }
-                        className="rounded-md border border-gray-300 px-2 py-1.5 text-sm"
+                        className={formInputCompactClass}
                         placeholder="Session"
                       />
                     </div>

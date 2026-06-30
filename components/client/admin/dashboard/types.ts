@@ -10,6 +10,7 @@ export type DashboardDocument = {
   created_at: string;
   statut: string;
   file_path: string;
+  original_file_name?: string | null;
 };
 
 export type DashboardStats = {

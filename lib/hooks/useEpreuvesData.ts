@@ -14,6 +14,7 @@ export interface Epreuve {
   statut: string;
   created_at: string;
   file_path: string;
+  original_file_name?: string | null;
 }
 
 export function useEpreuvesData() {
