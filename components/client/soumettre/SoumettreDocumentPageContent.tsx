@@ -8,6 +8,7 @@ import {
   getOriginalFileName,
 } from "../../../lib/fileUpload";
 import { getSubmissionFieldErrors } from "../../../lib/submissionValidation";
+import { notifyAdminOfSubmission } from "../../../lib/notifySubmission";
 import { useSubmissionOptions } from "../../../lib/hooks/useSubmissionOptions";
 import SubmissionForm from "./SubmissionForm";
 import SubmissionInfoCard from "./SubmissionInfoCard";
@@ -50,6 +51,16 @@ export default function SoumettreDocumentPageContent() {
   const [fieldErrors, setFieldErrors] = useState<
     Partial<Record<SubmissionFieldKey, boolean>>
   >({});
+  const [formKey, setFormKey] = useState(0);
+
+  const resetForm = () => {
+    setFormData(INITIAL_FORM);
+    setFile(null);
+    setFieldErrors({});
+    setErrorMessage("");
+    setStatus("idle");
+    setFormKey((current) => current + 1);
+  };
 
   const clearFieldError = (field: SubmissionFieldKey) => {
     setFieldErrors((prev) => {
@@ -166,21 +177,36 @@ export default function SoumettreDocumentPageContent() {
         throw uploadError;
       }
 
-      const { error: dbError } = await supabase.from("epreuves").insert([
-        {
-          titre,
-          filiere: resolvedFiliere,
-          ue: resolvedUe,
-          annee: resolvedAnnee,
-          session: formData.session || null,
-          type: resolvedType,
-          file_path: storageKey,
-          original_file_name: originalFileName,
-          soumis_par: "Anonyme",
-          statut: "En attente",
-        },
-      ]);
+      const { data: insertedDocument, error: dbError } = await supabase
+        .from("epreuves")
+        .insert([
+          {
+            titre,
+            filiere: resolvedFiliere,
+            ue: resolvedUe,
+            annee: resolvedAnnee,
+            session: formData.session || null,
+            type: resolvedType,
+            file_path: storageKey,
+            original_file_name: originalFileName,
+            soumis_par: "Anonyme",
+            statut: "En attente",
+          },
+        ])
+        .select("id")
+        .single();
       if (dbError) throw dbError;
+
+      void notifyAdminOfSubmission({
+        documentId: insertedDocument?.id,
+        titre,
+        type: resolvedType,
+        filiere: resolvedFiliere,
+        ue: resolvedUe,
+        annee: resolvedAnnee,
+        session: formData.session || null,
+        fileName: originalFileName,
+      });
 
       // Try to enrich reference tables with user-added values (if policies allow).
       if (formData.typeDocument === "Autre (à préciser)") {
@@ -202,10 +228,7 @@ export default function SoumettreDocumentPageContent() {
         filiere: resolvedFiliere,
       });
       setSuccessPopupOpen(true);
-      setStatus("idle");
-      setFormData(INITIAL_FORM);
-      setFile(null);
-      setFieldErrors({});
+      resetForm();
     } catch (error: any) {
       setStatus("error");
       setErrorMessage(
@@ -234,6 +257,7 @@ export default function SoumettreDocumentPageContent() {
 
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
           <SubmissionForm
+            key={formKey}
             formData={formData}
             options={options}
             file={file}

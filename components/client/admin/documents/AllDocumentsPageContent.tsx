@@ -18,6 +18,7 @@ import { DataTable } from "@/components/ui/data-table";
 import { useAllDocumentsColumns } from "@/components/client/admin/documents/all-documents-columns";
 import { toast } from "@/hooks/use-toast";
 import { useAdminAuth } from "@/lib/hooks/useAdminAuth";
+import { openDocumentInNewTab } from "@/lib/documentStorage";
 import { supabase } from "@/lib/supabaseClient";
 import type { DashboardDocument } from "../dashboard/types";
 
@@ -104,20 +105,15 @@ export default function AllDocumentsPageContent() {
   );
 
   const openDocument = useCallback(async (filePath: string) => {
-    const { data, error } = await supabase.storage
-      .from("documents")
-      .createSignedUrl(filePath, 120);
-
-    if (error || !data?.signedUrl) {
+    try {
+      await openDocumentInNewTab(filePath);
+    } catch {
       toast({
         title: "Erreur",
         description: "Impossible d'ouvrir ce document.",
         variant: "destructive",
       });
-      return;
     }
-
-    window.open(data.signedUrl, "_blank", "noopener,noreferrer");
   }, []);
 
   const saveDocument = useCallback(async (doc: DashboardDocument) => {

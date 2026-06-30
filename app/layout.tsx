@@ -1,8 +1,22 @@
 import "./globals.css";
 import { Inter } from "next/font/google";
-import AppShell from "./components/AppShell";
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+  preload: true,
+  adjustFontFallback: true,
+});
+
+const supabaseOrigin = (() => {
+  const value = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  if (!value) return null;
+  try {
+    return new URL(value).origin;
+  } catch {
+    return null;
+  }
+})();
 
 export const metadata = {
   title: "Banque Epreuve",
@@ -20,8 +34,18 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fr">
-      <body className={`${inter.className} flex min-h-screen flex-col overflow-x-hidden`}>
-        <AppShell>{children}</AppShell>
+      <head>
+        {supabaseOrigin ? (
+          <>
+            <link rel="preconnect" href={supabaseOrigin} crossOrigin="anonymous" />
+            <link rel="dns-prefetch" href={supabaseOrigin} />
+          </>
+        ) : null}
+      </head>
+      <body
+        className={`${inter.className} flex min-h-screen flex-col overflow-x-hidden`}
+      >
+        {children}
       </body>
     </html>
   );

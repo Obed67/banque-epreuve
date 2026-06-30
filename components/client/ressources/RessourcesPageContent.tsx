@@ -1,15 +1,11 @@
 "use client";
 
 import { FileText, BookOpen, GraduationCap, type LucideIcon } from "lucide-react";
-import Badge from "@/app/components/Badge";
-import DocumentPreviewActions from "@/app/components/DocumentPreviewActions";
 import FilterBar from "@/app/components/FilterBar";
 import Loader from "@/app/components/Loader";
-import VerifiedBadge from "@/app/components/VerifiedBadge";
+import CatalogDocumentCard from "@/components/client/catalog/CatalogDocumentCard";
 import { ListPagination } from "@/components/ui/list-pagination";
 import { useRessourcesData } from "@/lib/hooks/useRessourcesData";
-import { usePagination } from "@/lib/hooks/usePagination";
-import { GRID_PAGE_SIZE } from "@/lib/pagination";
 
 const normalizeType = (value: string) =>
   value
@@ -34,23 +30,18 @@ function getTypeIcon(type: string): LucideIcon {
 }
 
 export default function RessourcesPageContent() {
-  const { loading, filteredRessources, filters, applyFilters } =
-    useRessourcesData();
   const {
-    paginatedItems,
-    totalItems,
-    totalPages,
+    loading,
+    filteredRessources,
+    filters,
+    applyFilters,
     page,
+    setPage,
+    totalCount,
+    totalPages,
     rangeStart,
     rangeEnd,
-    setPage,
-    resetPage,
-  } = usePagination(filteredRessources, GRID_PAGE_SIZE);
-
-  const handleFilterChange = (values: Record<string, string>) => {
-    applyFilters(values);
-    resetPage();
-  };
+  } = useRessourcesData();
 
   return (
     <div className="bg-gray-50 py-16 min-h-full">
@@ -65,7 +56,7 @@ export default function RessourcesPageContent() {
           </p>
         </div>
 
-        <FilterBar filters={filters} onFilterChange={handleFilterChange} />
+        <FilterBar filters={filters} onFilterChange={applyFilters} />
 
         {loading ? (
           <Loader message="Chargement des ressources..." color="green" />
@@ -73,80 +64,41 @@ export default function RessourcesPageContent() {
           <>
             <div className="mb-6 flex justify-between items-center">
               <div className="text-sm font-medium text-gray-500">
-                {totalItems} ressource
-                {totalItems > 1 ? "s" : ""} trouvée
-                {totalItems > 1 ? "s" : ""}
+                {totalCount} ressource
+                {totalCount > 1 ? "s" : ""} trouvée
+                {totalCount > 1 ? "s" : ""}
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {paginatedItems.map((ressource) => {
-                const Icon = getTypeIcon(ressource.type);
-                return (
-                  <div
-                    key={ressource.id}
-                    className="bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-200 p-6 flex flex-col group"
-                  >
-                    <div className="flex items-start mb-4">
-                      <div className="bg-green-50 w-12 h-12 rounded-lg flex items-center justify-center mr-4 flex-shrink-0 group-hover:bg-[#1cb427] transition-colors duration-200">
-                        <Icon className="h-6 w-6 text-[#1cb427] group-hover:text-white transition-colors duration-200" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex justify-between items-start gap-2 mb-1">
-                          <h3 className="text-lg font-bold text-[#0f172a] line-clamp-2">
-                            {ressource.titre}
-                          </h3>
-                          <VerifiedBadge />
-                        </div>
-                        <Badge
-                          variant="info-subtle"
-                          className="text-xs font-medium"
-                        >
-                          {ressource.type}
-                        </Badge>
-                      </div>
-                    </div>
-
-                    <div className="space-y-3 mb-6 pt-4 border-t border-gray-50">
-                      <div className="flex items-center text-sm text-gray-600">
-                        <span className="w-20 font-medium text-gray-400">
-                          Filière :
-                        </span>
-                        <span className="font-medium text-gray-900">
-                          {ressource.filiere}
-                        </span>
-                      </div>
-                      <div className="flex items-center text-sm text-gray-600">
-                        <span className="w-20 font-medium text-gray-400">
-                          Année :
-                        </span>
-                        <span className="font-medium text-gray-900">
-                          {ressource.annee}
-                        </span>
-                      </div>
-                    </div>
-
-                    <DocumentPreviewActions
-                      filePath={ressource.file_path}
-                      downloadFileName={ressource.original_file_name}
-                      accent="green"
-                    />
-                  </div>
-                );
-              })}
+            <div className="grid grid-cols-1 items-stretch gap-5 md:grid-cols-2 lg:grid-cols-3">
+              {filteredRessources.map((ressource) => (
+                <CatalogDocumentCard
+                  key={ressource.id}
+                  titre={ressource.titre}
+                  badgeLabel={ressource.type}
+                  meta={[
+                    { label: "Filière", value: ressource.filiere },
+                    { label: "Année", value: ressource.annee },
+                  ]}
+                  filePath={ressource.file_path}
+                  downloadFileName={ressource.original_file_name}
+                  accent="green"
+                  icon={getTypeIcon(ressource.type)}
+                />
+              ))}
             </div>
 
             <ListPagination
               page={page}
               totalPages={totalPages}
-              totalItems={totalItems}
+              totalItems={totalCount}
               rangeStart={rangeStart}
               rangeEnd={rangeEnd}
               onPageChange={setPage}
               className="mt-6 rounded-xl border border-gray-100 bg-white"
             />
 
-            {totalItems === 0 && (
+            {totalCount === 0 && (
               <div className="text-center py-20 bg-white rounded-xl border border-gray-100 dashed">
                 <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-50 mb-4">
                   <BookOpen className="h-8 w-8 text-gray-400" />
