@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { openDocumentInNewTab } from "@/lib/documentStorage";
 import { supabase } from "@/lib/supabaseClient";
 
 export interface PendingDocument {
@@ -40,13 +41,7 @@ export function usePendingDocuments(enabled: boolean) {
   }, [enabled, fetchDocuments]);
 
   const openDocument = async (filePath: string) => {
-    const { data, error } = await supabase.storage
-      .from("documents")
-      .createSignedUrl(filePath, 120);
-    if (error || !data?.signedUrl) {
-      throw new Error("Impossible d'ouvrir ce document");
-    }
-    window.open(data.signedUrl, "_blank", "noopener,noreferrer");
+    await openDocumentInNewTab(filePath);
   };
 
   const updateStatus = async (id: string, statut: "Validé" | "Rejeté") => {
