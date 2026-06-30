@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { Download, Eye, FileText } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
+import { getDisplayFileName } from "@/lib/fileUpload";
 import {
   Dialog,
   DialogContent,
@@ -13,17 +14,24 @@ import {
 
 type DocumentPreviewActionsProps = {
   filePath: string;
+  downloadFileName?: string | null;
   accent?: "blue" | "green";
 };
 
 export default function DocumentPreviewActions({
   filePath,
+  downloadFileName,
   accent = "blue",
 }: DocumentPreviewActionsProps) {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewUrl, setPreviewUrl] = useState("");
   const [loadingPreview, setLoadingPreview] = useState(false);
   const [loadingDownload, setLoadingDownload] = useState(false);
+
+  const resolvedDownloadName = useMemo(
+    () => getDisplayFileName(downloadFileName, filePath),
+    [downloadFileName, filePath],
+  );
 
   const extension = useMemo(() => {
     const clean = filePath.split("?")[0];
@@ -63,8 +71,22 @@ export default function DocumentPreviewActions({
   const handleDownload = async () => {
     try {
       setLoadingDownload(true);
-      const signedUrl = await getSignedUrl();
-      window.open(signedUrl, "_blank", "noopener,noreferrer");
+      const { data, error } = await supabase.storage
+        .from("documents")
+        .download(filePath);
+
+      if (error || !data) {
+        throw error ?? new Error("Téléchargement impossible");
+      }
+
+      const url = URL.createObjectURL(data);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = resolvedDownloadName;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
     } catch {
       window.alert("Impossible de télécharger ce document pour le moment.");
     } finally {

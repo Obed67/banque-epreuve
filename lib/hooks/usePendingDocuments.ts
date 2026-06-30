@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useCallback, useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabaseClient';
+import { useCallback, useEffect, useState } from "react";
+import { supabase } from "@/lib/supabaseClient";
 
 export interface PendingDocument {
   id: string;
@@ -15,6 +15,7 @@ export interface PendingDocument {
   created_at: string;
   statut: string;
   file_path: string;
+  original_file_name?: string | null;
 }
 
 export function usePendingDocuments(enabled: boolean) {
@@ -25,10 +26,10 @@ export function usePendingDocuments(enabled: boolean) {
   const fetchDocuments = useCallback(async () => {
     setLoading(true);
     const { data, error } = await supabase
-      .from('epreuves')
-      .select('*')
-      .eq('statut', 'En attente')
-      .order('created_at', { ascending: false });
+      .from("epreuves")
+      .select("*")
+      .eq("statut", "En attente")
+      .order("created_at", { ascending: false });
     if (!error) setDocuments(data || []);
     setLoading(false);
   }, []);
@@ -39,23 +40,46 @@ export function usePendingDocuments(enabled: boolean) {
   }, [enabled, fetchDocuments]);
 
   const openDocument = async (filePath: string) => {
-    const { data, error } = await supabase.storage.from('documents').createSignedUrl(filePath, 120);
+    const { data, error } = await supabase.storage
+      .from("documents")
+      .createSignedUrl(filePath, 120);
     if (error || !data?.signedUrl) {
       throw new Error("Impossible d'ouvrir ce document");
     }
-    window.open(data.signedUrl, '_blank', 'noopener,noreferrer');
+    window.open(data.signedUrl, "_blank", "noopener,noreferrer");
   };
 
-  const updateStatus = async (id: string, statut: 'Validé' | 'Rejeté') => {
+  const updateStatus = async (id: string, statut: "Validé" | "Rejeté") => {
     setProcessingId(id);
-    const { error } = await supabase.from('epreuves').update({ statut }).eq('id', id);
+    const { data, error } = await supabase
+      .from("epreuves")
+      .update({ statut })
+      .eq("id", id)
+      .select("id")
+      .maybeSingle();
+
     if (error) {
       setProcessingId(null);
       throw error;
     }
+
+    if (!data) {
+      setProcessingId(null);
+      throw new Error(
+        "Aucune ligne mise à jour. Vérifiez les droits admin ou exécutez db/epreuves_moderation_schema.sql.",
+      );
+    }
+
     setDocuments((prev) => prev.filter((d) => d.id !== id));
     setProcessingId(null);
   };
 
-  return { documents, loading, processingId, fetchDocuments, openDocument, updateStatus };
+  return {
+    documents,
+    loading,
+    processingId,
+    fetchDocuments,
+    openDocument,
+    updateStatus,
+  };
 }

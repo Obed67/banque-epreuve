@@ -3,15 +3,14 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Eye, EyeOff } from 'lucide-react';
 import Button from '@/app/components/Button';
+import FormInput from '@/app/components/FormInput';
+import FormPasswordField from '@/app/components/FormPasswordField';
 import { signUpWithEmail } from '@/lib/auth';
 
 export default function AdminRegisterPageContent() {
   const router = useRouter();
   const [formData, setFormData] = useState({ email: '', password: '', confirmPassword: '' });
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -48,28 +47,33 @@ export default function AdminRegisterPageContent() {
         </div>
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">Email</label>
-              <input type="email" id="email" name="email" value={formData.email} onChange={handleChange} required disabled={loading} placeholder="nom@universite.com" className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0077d2] focus:border-transparent transition-all disabled:opacity-50" />
-            </div>
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">Mot de passe</label>
-              <div className="relative">
-                <input type={showPassword ? 'text' : 'password'} id="password" name="password" value={formData.password} onChange={handleChange} required disabled={loading} placeholder="••••••••" className="w-full px-4 py-3 pr-12 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0077d2] focus:border-transparent transition-all disabled:opacity-50" />
-                <button type="button" onClick={() => setShowPassword((prev) => !prev)} className="absolute inset-y-0 right-0 px-3 text-gray-500 hover:text-gray-700" aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}>
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
-              </div>
-            </div>
-            <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">Confirmer le mot de passe</label>
-              <div className="relative">
-                <input type={showConfirmPassword ? 'text' : 'password'} id="confirmPassword" name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} required disabled={loading} placeholder="••••••••" className="w-full px-4 py-3 pr-12 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0077d2] focus:border-transparent transition-all disabled:opacity-50" />
-                <button type="button" onClick={() => setShowConfirmPassword((prev) => !prev)} className="absolute inset-y-0 right-0 px-3 text-gray-500 hover:text-gray-700" aria-label={showConfirmPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}>
-                  {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
-              </div>
-            </div>
+            <FormInput
+              type="email"
+              id="email"
+              name="email"
+              label="Email"
+              value={formData.email}
+              onChange={handleChange}
+              required
+              disabled={loading}
+              placeholder="nom@universite.com"
+            />
+            <FormPasswordField
+              id="password"
+              name="password"
+              label="Mot de passe"
+              value={formData.password}
+              onChange={handleChange}
+              disabled={loading}
+            />
+            <FormPasswordField
+              id="confirmPassword"
+              name="confirmPassword"
+              label="Confirmer le mot de passe"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              disabled={loading}
+            />
             {error && <div className="bg-red-50 border border-red-100 rounded-lg p-4 text-sm text-red-700 font-medium">{error}</div>}
             {success && <div className="bg-green-50 border border-green-100 rounded-lg p-4 text-sm text-green-700 font-medium">{success}</div>}
             <Button type="submit" size="lg" className="w-full h-12 bg-[#0077d2] hover:bg-[#0062b0] rounded-lg font-medium shadow-sm shadow-blue-900/10 disabled:opacity-50" disabled={loading}>

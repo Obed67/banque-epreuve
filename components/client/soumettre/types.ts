@@ -1,3 +1,14 @@
+export type SubmissionFieldKey =
+  | "typeDocument"
+  | "customTypeDocument"
+  | "filiere"
+  | "customFiliere"
+  | "ue"
+  | "customUe"
+  | "annee"
+  | "customAnnee"
+  | "file";
+
 export type SubmissionFormData = {
   typeDocument: string;
   customTypeDocument: string;
@@ -8,7 +19,6 @@ export type SubmissionFormData = {
   annee: string;
   customAnnee: string;
   session: string;
-  titre: string;
 };
 
 export type SubmissionStatus = "idle" | "uploading" | "error";

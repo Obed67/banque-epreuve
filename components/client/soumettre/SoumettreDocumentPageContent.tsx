@@ -2,11 +2,18 @@
 
 import { useState } from "react";
 import { supabase } from "../../../lib/supabaseClient";
+import {
+  buildStorageObjectKey,
+  getDocumentTitleFromFile,
+  getOriginalFileName,
+} from "../../../lib/fileUpload";
+import { getSubmissionFieldErrors } from "../../../lib/submissionValidation";
 import { useSubmissionOptions } from "../../../lib/hooks/useSubmissionOptions";
 import SubmissionForm from "./SubmissionForm";
 import SubmissionInfoCard from "./SubmissionInfoCard";
 import SubmissionSuccessDialog from "./SubmissionSuccessDialog";
 import type {
+  SubmissionFieldKey,
   SubmissionFormData,
   SubmittedInfo,
   SubmissionStatus,
@@ -22,7 +29,6 @@ const INITIAL_FORM: SubmissionFormData = {
   annee: "",
   customAnnee: "",
   session: "",
-  titre: "",
 };
 
 export default function SoumettreDocumentPageContent() {
@@ -41,17 +47,61 @@ export default function SoumettreDocumentPageContent() {
   const [submittedInfo, setSubmittedInfo] = useState<SubmittedInfo | null>(
     null,
   );
+  const [fieldErrors, setFieldErrors] = useState<
+    Partial<Record<SubmissionFieldKey, boolean>>
+  >({});
+
+  const clearFieldError = (field: SubmissionFieldKey) => {
+    setFieldErrors((prev) => {
+      if (!prev[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  };
 
   const onInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    clearFieldError(e.target.name as SubmissionFieldKey);
+    if (status === "error") {
+      setStatus("idle");
+      setErrorMessage("");
+    }
+  };
+
+  const handleFileSelect = (selected: File) => {
+    const extension = selected.name.split(".").pop()?.toLowerCase();
+    const allowedExtensions = ["pdf", "doc", "docx"];
+
+    if (!extension || !allowedExtensions.includes(extension)) {
+      setStatus("error");
+      setErrorMessage("Format non accepté. Utilisez PDF, DOC ou DOCX.");
+      return;
+    }
+
+    if (selected.size > 10 * 1024 * 1024) {
+      setStatus("error");
+      setErrorMessage("Le fichier dépasse la taille maximale de 10 Mo.");
+      return;
+    }
+
+    setStatus("idle");
+    setErrorMessage("");
+    setFile(selected);
+    clearFieldError("file");
   };
 
   const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files?.[0]) setFile(e.target.files[0]);
+    if (e.target.files?.[0]) handleFileSelect(e.target.files[0]);
   };
 
   const onSelectChange = (field: keyof SubmissionFormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+    clearFieldError(field as SubmissionFieldKey);
+    if (status === "error") {
+      setStatus("idle");
+      setErrorMessage("");
+    }
   };
 
   const onSubmit = async (e: React.FormEvent) => {
@@ -73,44 +123,59 @@ export default function SoumettreDocumentPageContent() {
         ? formData.customAnnee.trim()
         : formData.annee;
 
-    if (
-      !resolvedType ||
-      !formData.titre.trim() ||
-      !resolvedFiliere ||
-      !resolvedAnnee ||
-      !resolvedUe
-    ) {
+    const validationErrors = getSubmissionFieldErrors(formData, file);
+    if (Object.keys(validationErrors).length > 0) {
+      setFieldErrors(validationErrors);
       setStatus("error");
       setErrorMessage("Veuillez remplir tous les champs obligatoires.");
       return;
     }
-    if (!file) {
-      setStatus("error");
-      setErrorMessage("Veuillez Sélectionner un fichier.");
-      return;
-    }
 
+    setFieldErrors({});
     setStatus("uploading");
     setErrorMessage("");
 
+    if (!file) return;
+
     try {
-      const fileExt = file.name.split(".").pop();
-      const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`;
+      const originalFileName = getOriginalFileName(file);
+      const titre = getDocumentTitleFromFile(file);
+      const storageKey = buildStorageObjectKey(file);
 
       const { error: uploadError } = await supabase.storage
         .from("documents")
-        .upload(fileName, file);
-      if (uploadError) throw uploadError;
+        .upload(storageKey, file, {
+          upsert: false,
+          contentType: file.type,
+          metadata: { originalFileName },
+        });
+      if (uploadError) {
+        if (
+          uploadError.message?.toLowerCase().includes("already exists") ||
+          uploadError.message?.toLowerCase().includes("duplicate")
+        ) {
+          throw new Error(
+            "Un fichier avec ce nom existe déjà. Renommez votre fichier et réessayez.",
+          );
+        }
+        if (uploadError.message?.toLowerCase().includes("invalid key")) {
+          throw new Error(
+            "Impossible d'enregistrer ce fichier. Réessayez ou contactez l'administrateur.",
+          );
+        }
+        throw uploadError;
+      }
 
       const { error: dbError } = await supabase.from("epreuves").insert([
         {
-          titre: formData.titre,
+          titre,
           filiere: resolvedFiliere,
           ue: resolvedUe,
           annee: resolvedAnnee,
           session: formData.session || null,
           type: resolvedType,
-          file_path: fileName,
+          file_path: storageKey,
+          original_file_name: originalFileName,
           soumis_par: "Anonyme",
           statut: "En attente",
         },
@@ -132,7 +197,7 @@ export default function SoumettreDocumentPageContent() {
       }
 
       setSubmittedInfo({
-        titre: formData.titre,
+        titre,
         typeDocument: resolvedType,
         filiere: resolvedFiliere,
       });
@@ -140,6 +205,7 @@ export default function SoumettreDocumentPageContent() {
       setStatus("idle");
       setFormData(INITIAL_FORM);
       setFile(null);
+      setFieldErrors({});
     } catch (error: any) {
       setStatus("error");
       setErrorMessage(
@@ -175,10 +241,12 @@ export default function SoumettreDocumentPageContent() {
             errorMessage={errorMessage}
             onInputChange={onInputChange}
             onFileChange={onFileChange}
+            onFileSelect={handleFileSelect}
             onSelectChange={onSelectChange}
             onSubmit={onSubmit}
             disabled={!isReady || optionsLoading}
             globalError={!isReady ? optionsError : ""}
+            fieldErrors={fieldErrors}
           />
           <div className="space-y-6">
             <SubmissionInfoCard />

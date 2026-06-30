@@ -1,22 +1,56 @@
 "use client";
 
-import { FileText, BookOpen, GraduationCap } from "lucide-react";
+import { FileText, BookOpen, GraduationCap, type LucideIcon } from "lucide-react";
 import Badge from "@/app/components/Badge";
 import DocumentPreviewActions from "@/app/components/DocumentPreviewActions";
 import FilterBar from "@/app/components/FilterBar";
 import Loader from "@/app/components/Loader";
+import VerifiedBadge from "@/app/components/VerifiedBadge";
+import { ListPagination } from "@/components/ui/list-pagination";
 import { useRessourcesData } from "@/lib/hooks/useRessourcesData";
+import { usePagination } from "@/lib/hooks/usePagination";
+import { GRID_PAGE_SIZE } from "@/lib/pagination";
 
-const typeIcons = {
-  Cours: BookOpen,
-  TD: FileText,
-  Mémoire: GraduationCap,
-  Support: FileText,
-};
+const normalizeType = (value: string) =>
+  value
+    .trim()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+
+function getTypeIcon(type: string): LucideIcon {
+  switch (normalizeType(type)) {
+    case "cours":
+      return BookOpen;
+    case "td":
+      return FileText;
+    case "memoire":
+      return GraduationCap;
+    case "support":
+      return FileText;
+    default:
+      return FileText;
+  }
+}
 
 export default function RessourcesPageContent() {
   const { loading, filteredRessources, filters, applyFilters } =
     useRessourcesData();
+  const {
+    paginatedItems,
+    totalItems,
+    totalPages,
+    page,
+    rangeStart,
+    rangeEnd,
+    setPage,
+    resetPage,
+  } = usePagination(filteredRessources, GRID_PAGE_SIZE);
+
+  const handleFilterChange = (values: Record<string, string>) => {
+    applyFilters(values);
+    resetPage();
+  };
 
   return (
     <div className="bg-gray-50 py-16 min-h-full">
@@ -31,7 +65,7 @@ export default function RessourcesPageContent() {
           </p>
         </div>
 
-        <FilterBar filters={filters} onFilterChange={applyFilters} />
+        <FilterBar filters={filters} onFilterChange={handleFilterChange} />
 
         {loading ? (
           <Loader message="Chargement des ressources..." color="green" />
@@ -39,16 +73,15 @@ export default function RessourcesPageContent() {
           <>
             <div className="mb-6 flex justify-between items-center">
               <div className="text-sm font-medium text-gray-500">
-                {filteredRessources.length} ressource
-                {filteredRessources.length > 1 ? "s" : ""} trouvée
-                {filteredRessources.length > 1 ? "s" : ""}
+                {totalItems} ressource
+                {totalItems > 1 ? "s" : ""} trouvée
+                {totalItems > 1 ? "s" : ""}
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredRessources.map((ressource) => {
-                const Icon =
-                  typeIcons[ressource.type as keyof typeof typeIcons];
+              {paginatedItems.map((ressource) => {
+                const Icon = getTypeIcon(ressource.type);
                 return (
                   <div
                     key={ressource.id}
@@ -58,10 +91,13 @@ export default function RessourcesPageContent() {
                       <div className="bg-green-50 w-12 h-12 rounded-lg flex items-center justify-center mr-4 flex-shrink-0 group-hover:bg-[#1cb427] transition-colors duration-200">
                         <Icon className="h-6 w-6 text-[#1cb427] group-hover:text-white transition-colors duration-200" />
                       </div>
-                      <div className="flex-1">
-                        <h3 className="text-lg font-bold text-[#0f172a] mb-1 line-clamp-2">
-                          {ressource.titre}
-                        </h3>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex justify-between items-start gap-2 mb-1">
+                          <h3 className="text-lg font-bold text-[#0f172a] line-clamp-2">
+                            {ressource.titre}
+                          </h3>
+                          <VerifiedBadge />
+                        </div>
                         <Badge
                           variant="info-subtle"
                           className="text-xs font-medium"
@@ -92,6 +128,7 @@ export default function RessourcesPageContent() {
 
                     <DocumentPreviewActions
                       filePath={ressource.file_path}
+                      downloadFileName={ressource.original_file_name}
                       accent="green"
                     />
                   </div>
@@ -99,7 +136,17 @@ export default function RessourcesPageContent() {
               })}
             </div>
 
-            {filteredRessources.length === 0 && (
+            <ListPagination
+              page={page}
+              totalPages={totalPages}
+              totalItems={totalItems}
+              rangeStart={rangeStart}
+              rangeEnd={rangeEnd}
+              onPageChange={setPage}
+              className="mt-6 rounded-xl border border-gray-100 bg-white"
+            />
+
+            {totalItems === 0 && (
               <div className="text-center py-20 bg-white rounded-xl border border-gray-100 dashed">
                 <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-50 mb-4">
                   <BookOpen className="h-8 w-8 text-gray-400" />

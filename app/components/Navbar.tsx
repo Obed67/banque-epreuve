@@ -19,8 +19,14 @@ export default function Navbar() {
     <nav className="bg-[#0077d2] text-white shadow-lg fixed top-0 left-0 right-0 z-50">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
-          <Link href="/" className="flex items-center space-x-2" onClick={closeMenu}>
-            <span className="text-xl font-bold">Portail d&apos;Épreuve</span>
+          <Link
+            href="/"
+            className="flex items-center space-x-2"
+            onClick={closeMenu}
+          >
+            <span className="truncate text-base font-bold sm:text-xl">
+              Portail d&apos;Épreuve
+            </span>
           </Link>
 
           {/* Desktop Menu */}
@@ -54,7 +60,7 @@ export default function Navbar() {
           </div>
 
           {/* Mobile Menu Button */}
-          <button 
+          <button
             className="md:hidden p-2 rounded-lg hover:bg-white/10 transition-colors focus:outline-none"
             onClick={() => setIsOpen(!isOpen)}
             aria-label="Menu"
@@ -72,7 +78,9 @@ export default function Navbar() {
               href="/epreuves"
               onClick={closeMenu}
               className={`block px-4 py-3 rounded-lg transition-colors ${
-                isActive("/epreuves") ? "bg-white/20 font-medium" : "hover:bg-white/10"
+                isActive("/epreuves")
+                  ? "bg-white/20 font-medium"
+                  : "hover:bg-white/10"
               }`}
             >
               Épreuves
@@ -81,7 +89,9 @@ export default function Navbar() {
               href="/ressources"
               onClick={closeMenu}
               className={`block px-4 py-3 rounded-lg transition-colors ${
-                isActive("/ressources") ? "bg-white/20 font-medium" : "hover:bg-white/10"
+                isActive("/ressources")
+                  ? "bg-white/20 font-medium"
+                  : "hover:bg-white/10"
               }`}
             >
               Ressources
@@ -90,7 +100,9 @@ export default function Navbar() {
               href="/soumettre"
               onClick={closeMenu}
               className={`block px-4 py-3 rounded-lg transition-colors ${
-                isActive("/soumettre") ? "bg-white/20 font-medium" : "hover:bg-white/10"
+                isActive("/soumettre")
+                  ? "bg-white/20 font-medium"
+                  : "hover:bg-white/10"
               }`}
             >
               Soumettre

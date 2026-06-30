@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { GripVertical, Plus, Search } from "lucide-react";
-import AdminSidebar from "@/app/admin/components/AdminSidebar";
+import { GripVertical, Plus } from "lucide-react";
+import AdminPageShell from "@/components/client/admin/shared/AdminPageShell";
 import Button from "@/app/components/Button";
 import Loader from "@/app/components/Loader";
+import SearchInput from "@/app/components/SearchInput";
 import { Toaster } from "@/components/ui/toaster";
 import { toast } from "@/hooks/use-toast";
+import { formInputCompactClass } from "@/lib/form-styles";
 import { useAdminAuth } from "@/lib/hooks/useAdminAuth";
 import { supabase } from "@/lib/supabaseClient";
 
@@ -290,11 +292,7 @@ export default function AdminReferentielsPageContent() {
   };
 
   return (
-    <div className="h-screen bg-[#eef6ff]">
-      <div className="grid h-full grid-cols-1 lg:grid-cols-[290px_1fr]">
-        <AdminSidebar userEmail={userEmail} onLogout={logout} />
-
-        <section className="h-full overflow-y-auto p-6 lg:p-8">
+    <AdminPageShell userEmail={userEmail} onLogout={logout}>
           <Toaster />
 
           <div className="mb-6">
@@ -333,10 +331,8 @@ export default function AdminReferentielsPageContent() {
                           </span>
                         </div>
 
-                        <div className="relative mb-3">
-                          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-                          <input
-                            type="text"
+                        <div className="mb-3">
+                          <SearchInput
                             value={searchByTable[table]}
                             onChange={(e) =>
                               setSearchByTable((prev) => ({
@@ -345,7 +341,6 @@ export default function AdminReferentielsPageContent() {
                               }))
                             }
                             placeholder={`Rechercher dans ${title.toLowerCase()}`}
-                            className="w-full rounded-lg border border-gray-300 py-2 pl-9 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0077d2]"
                           />
                         </div>
 
@@ -366,7 +361,7 @@ export default function AdminReferentielsPageContent() {
                               }
                             }}
                             placeholder={`Ajouter un élément (${title.toLowerCase()})`}
-                            className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0077d2]"
+                            className={`flex-1 ${formInputCompactClass}`}
                           />
                           <Button
                             onClick={() => addValue(table)}
@@ -422,7 +417,7 @@ export default function AdminReferentielsPageContent() {
                                     });
                                   }
                                 }}
-                                className="rounded-md border border-gray-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0077d2]"
+                                className={formInputCompactClass}
                               />
 
                               <input
@@ -465,7 +460,7 @@ export default function AdminReferentielsPageContent() {
 
                                   resetSortDraft(table, item.id);
                                 }}
-                                className="rounded-md border border-gray-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0077d2]"
+                                className={formInputCompactClass}
                               />
 
                               <label className="flex items-center gap-2 text-sm text-gray-700">
@@ -497,8 +492,6 @@ export default function AdminReferentielsPageContent() {
               ))}
             </div>
           )}
-        </section>
-      </div>
-    </div>
+    </AdminPageShell>
   );
 }

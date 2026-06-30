@@ -54,12 +54,12 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="border-t mt-8 pt-6 flex justify-between text-sm text-gray-500">
+        <div className="mt-8 flex flex-col gap-3 border-t pt-6 text-center text-sm text-gray-500 sm:flex-row sm:items-center sm:justify-between sm:text-left">
           <p>
             © {new Date().getFullYear()} Portail d&apos;Épreuve. Tous droits
             réservés.
           </p>
-          <p className="mt-2">
+          <p>
             Powered by{" "}
             <a
               href="https://obedev.me"

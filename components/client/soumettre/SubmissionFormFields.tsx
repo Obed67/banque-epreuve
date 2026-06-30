@@ -1,11 +1,20 @@
-import { Label } from "../../ui/label";
+import {
+  formFieldErrorClass,
+  formInputClass,
+  formLabelClass,
+  formLabelErrorClass,
+  formSelectContentClass,
+  formSelectItemClass,
+  formSelectTriggerClass,
+} from '@/lib/form-styles';
+import { cn } from '@/lib/utils';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../../ui/select";
+} from '../../ui/select';
 
 type FieldSelectProps = {
   id: string;
@@ -14,6 +23,7 @@ type FieldSelectProps = {
   value: string;
   items: string[];
   onValueChange: (value: string) => void;
+  hasError?: boolean;
 };
 
 export function FieldSelect({
@@ -23,22 +33,26 @@ export function FieldSelect({
   value,
   items,
   onValueChange,
+  hasError = false,
 }: FieldSelectProps) {
   return (
     <div>
-      <Label htmlFor={id} className="mb-2 block text-sm text-gray-700">
+      <label
+        htmlFor={id}
+        className={cn(formLabelClass, hasError && formLabelErrorClass)}
+      >
         {label}
-      </Label>
+      </label>
       <Select value={value || undefined} onValueChange={onValueChange}>
         <SelectTrigger
           id={id}
-          className="w-full rounded-lg border-gray-300 focus:ring-[#0077d2]"
+          className={cn(formSelectTriggerClass, hasError && formFieldErrorClass)}
         >
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent className={formSelectContentClass}>
           {items.map((item) => (
-            <SelectItem key={item} value={item}>
+            <SelectItem key={item} value={item} className={formSelectItemClass}>
               {item}
             </SelectItem>
           ))}
@@ -54,6 +68,8 @@ type FieldInputProps = {
   value: string;
   placeholder: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  className?: string;
+  hasError?: boolean;
 };
 
 export function FieldInput({
@@ -62,12 +78,17 @@ export function FieldInput({
   value,
   placeholder,
   onChange,
+  className,
+  hasError = false,
 }: FieldInputProps) {
   return (
     <div>
-      <Label htmlFor={id} className="mb-2 block text-sm text-gray-700">
+      <label
+        htmlFor={id}
+        className={cn(formLabelClass, hasError && formLabelErrorClass)}
+      >
         {label}
-      </Label>
+      </label>
       <input
         id={id}
         name={id}
@@ -76,7 +97,11 @@ export function FieldInput({
         onChange={onChange}
         required
         placeholder={placeholder}
-        className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#0077d2]"
+        className={cn(
+          formInputClass,
+          hasError && formFieldErrorClass,
+          className,
+        )}
       />
     </div>
   );
