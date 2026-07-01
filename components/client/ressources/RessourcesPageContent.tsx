@@ -2,6 +2,7 @@
 
 import { FileText, BookOpen, GraduationCap, type LucideIcon } from "lucide-react";
 import FilterBar from "@/app/components/FilterBar";
+import CatalogSearchBar from "@/app/components/CatalogSearchBar";
 import Loader from "@/app/components/Loader";
 import CatalogDocumentCard from "@/components/client/catalog/CatalogDocumentCard";
 import { ListPagination } from "@/components/ui/list-pagination";
@@ -35,6 +36,8 @@ export default function RessourcesPageContent() {
     filteredRessources,
     filters,
     applyFilters,
+    searchInput,
+    setSearchInput,
     page,
     setPage,
     totalCount,
@@ -55,6 +58,12 @@ export default function RessourcesPageContent() {
             pour enrichir vos connaissances.
           </p>
         </div>
+
+        <CatalogSearchBar
+          value={searchInput}
+          onChange={setSearchInput}
+          placeholder="Rechercher une ressource (titre, filière, type…)"
+        />
 
         <FilterBar filters={filters} onFilterChange={applyFilters} />
 
@@ -110,7 +119,7 @@ export default function RessourcesPageContent() {
                   Aucune ressource trouvée
                 </h3>
                 <p className="text-gray-500">
-                  Essayez de modifier vos filtres de recherche
+                  Essayez de modifier vos filtres ou votre recherche
                 </p>
               </div>
             )}

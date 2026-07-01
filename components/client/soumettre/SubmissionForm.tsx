@@ -9,6 +9,8 @@ import { cn } from "@/lib/utils";
 import { FieldInput, FieldSelect } from "./SubmissionFormFields";
 import type { SubmissionFieldKey, SubmissionFormData, SubmissionStatus } from "./types";
 
+import { isEpreuveType } from "@/lib/documentType";
+
 const AUTRE = "Autre (à préciser)";
 
 type SubmissionFormProps = {
@@ -77,7 +79,7 @@ export default function SubmissionForm({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const isUploading = status === "uploading";
-  const isEpreuve = formData.typeDocument === "Epreuve";
+  const isEpreuve = isEpreuveType(formData.typeDocument);
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
