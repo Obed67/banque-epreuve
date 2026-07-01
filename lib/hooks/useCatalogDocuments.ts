@@ -24,7 +24,7 @@ export type CatalogDocument = {
 
 type RefRow = { label: string; is_active?: boolean; sort_order?: number | null };
 
-const SESSION_OPTIONS = ["Normale", "Rattrapage", "Reprise"];
+const SESSION_OPTIONS = ["Normale", "Rattrapage"];
 
 type CatalogMode = "epreuves" | "ressources";
 

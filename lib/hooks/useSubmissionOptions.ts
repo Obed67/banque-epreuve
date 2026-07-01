@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabaseClient';
 
 type RefRow = { label: string; is_active?: boolean; sort_order?: number | null };
 
-const DEFAULT_SESSIONS = ['Normale', 'Rattrapage', 'Reprise'];
+const DEFAULT_SESSIONS = ['Normale', 'Rattrapage'];
 
 function sortByOrderThenLabel(rows: RefRow[]) {
   return rows
