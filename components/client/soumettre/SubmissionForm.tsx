@@ -208,7 +208,7 @@ export default function SubmissionForm({
               <FieldSelect
                 id="niveau"
                 label="Niveau d'études *"
-                placeholder="Ex : L1, M1"
+                placeholder="Ex : Licence 1, Première année"
                 value={formData.niveau}
                 onValueChange={(value) => onSelectChange("niveau", value)}
                 items={options.niveaux}
