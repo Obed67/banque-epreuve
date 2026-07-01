@@ -3,6 +3,12 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { GRID_PAGE_SIZE, getTotalPages } from "@/lib/pagination";
+import {
+  buildEpreuveTypeOrFilter,
+  EPREUVE_TYPE_VARIANTS,
+  isEpreuveType,
+} from "@/lib/documentType";
+import { foldSearchText } from "@/lib/searchText";
 
 export const CATALOG_DOCUMENT_COLUMNS =
   "id,titre,type,etablissement,filiere,ue,annee,niveau,session,file_path,original_file_name,created_at";
@@ -46,16 +52,118 @@ function buildBaseQuery(mode: CatalogMode) {
     .eq("statut", "Validé");
 
   if (mode === "epreuves") {
-    return query.ilike("type", "epreuve");
+    return query.or(buildEpreuveTypeOrFilter());
   }
 
-  return query.not("type", "ilike", "epreuve");
+  for (const variant of EPREUVE_TYPE_VARIANTS) {
+    query = query.neq("type", variant);
+  }
+
+  return query;
+}
+
+function escapeIlikePattern(value: string) {
+  return value.replace(/[%_\\,]/g, "\\$&");
+}
+
+function applySearchFilter<T extends ReturnType<typeof buildBaseQuery>>(
+  query: T,
+  searchQuery: string,
+) {
+  const term = searchQuery.trim();
+  if (!term) return query;
+
+  const folded = foldSearchText(term);
+  const patterns = Array.from(new Set([term, folded]))
+    .filter(Boolean)
+    .map((value) => `%${escapeIlikePattern(value)}%`);
+
+  const fields = [
+    "titre",
+    "filiere",
+    "ue",
+    "etablissement",
+    "annee",
+    "niveau",
+    "type",
+    "original_file_name",
+  ];
+
+  const clauses = fields.flatMap((field) =>
+    patterns.map((pattern) => `${field}.ilike.${pattern}`),
+  );
+
+  return query.or(clauses.join(","));
+}
+
+type CatalogPageRpcResult = {
+  total: number;
+  data: CatalogDocument[] | null;
+};
+
+async function fetchCatalogPageViaRpc(
+  mode: CatalogMode,
+  searchQuery: string,
+  activeFilters: Record<string, string>,
+  from: number,
+) {
+  return supabase.rpc("get_catalog_page", {
+    p_mode: mode,
+    p_search: searchQuery || null,
+    p_etablissement: activeFilters.etablissement || null,
+    p_filiere: activeFilters.filiere || null,
+    p_ue: activeFilters.ue || null,
+    p_annee: activeFilters.annee || null,
+    p_niveau: activeFilters.niveau || null,
+    p_session: activeFilters.session || null,
+    p_type: activeFilters.type || null,
+    p_limit: GRID_PAGE_SIZE,
+    p_offset: from,
+  });
+}
+
+async function fetchCatalogPageViaQuery(
+  mode: CatalogMode,
+  searchQuery: string,
+  activeFilters: Record<string, string>,
+  from: number,
+  to: number,
+) {
+  let query = buildBaseQuery(mode);
+
+  if (activeFilters.etablissement) {
+    query = query.eq("etablissement", activeFilters.etablissement);
+  }
+  if (activeFilters.filiere) {
+    query = query.eq("filiere", activeFilters.filiere);
+  }
+  if (activeFilters.ue) {
+    query = query.eq("ue", activeFilters.ue);
+  }
+  if (activeFilters.annee) {
+    query = query.eq("annee", activeFilters.annee);
+  }
+  if (activeFilters.niveau) {
+    query = query.eq("niveau", activeFilters.niveau);
+  }
+  if (activeFilters.session) {
+    query = query.eq("session", activeFilters.session);
+  }
+  if (activeFilters.type) {
+    query = query.eq("type", activeFilters.type);
+  }
+
+  query = applySearchFilter(query, searchQuery);
+
+  return query.order("created_at", { ascending: false }).range(from, to);
 }
 
 export function useCatalogDocuments(mode: CatalogMode) {
   const [documents, setDocuments] = useState<CatalogDocument[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [page, setPage] = useState(1);
+  const [searchInput, setSearchInput] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const [activeFilters, setActiveFilters] = useState<Record<string, string>>(
     {},
   );
@@ -97,7 +205,7 @@ export function useCatalogDocuments(mode: CatalogMode) {
       ]);
 
       const types = sortLabels((typesRes.data || []) as RefRow[]).filter(
-        (label) => label.toLowerCase() !== "epreuve",
+        (label) => !isEpreuveType(label),
       );
 
       setFilterOptions({
@@ -114,38 +222,54 @@ export function useCatalogDocuments(mode: CatalogMode) {
     void loadFilterOptions();
   }, []);
 
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setSearchQuery(searchInput.trim());
+    }, 300);
+
+    return () => window.clearTimeout(timer);
+  }, [searchInput]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [searchQuery]);
+
   const fetchDocuments = useCallback(async () => {
     setLoading(true);
     const from = (page - 1) * GRID_PAGE_SIZE;
     const to = from + GRID_PAGE_SIZE - 1;
 
-    let query = buildBaseQuery(mode);
+    const { data: rpcData, error: rpcError } = await fetchCatalogPageViaRpc(
+      mode,
+      searchQuery,
+      activeFilters,
+      from,
+    );
 
-    if (activeFilters.etablissement) {
-      query = query.eq("etablissement", activeFilters.etablissement);
-    }
-    if (activeFilters.filiere) {
-      query = query.eq("filiere", activeFilters.filiere);
-    }
-    if (activeFilters.ue) {
-      query = query.eq("ue", activeFilters.ue);
-    }
-    if (activeFilters.annee) {
-      query = query.eq("annee", activeFilters.annee);
-    }
-    if (activeFilters.niveau) {
-      query = query.eq("niveau", activeFilters.niveau);
-    }
-    if (activeFilters.session) {
-      query = query.eq("session", activeFilters.session);
-    }
-    if (activeFilters.type) {
-      query = query.eq("type", activeFilters.type);
+    if (!rpcError && rpcData) {
+      const result = (
+        typeof rpcData === "string" ? JSON.parse(rpcData) : rpcData
+      ) as CatalogPageRpcResult;
+      setDocuments(Array.isArray(result.data) ? result.data : []);
+      setTotalCount(Number(result.total ?? 0));
+      setLoading(false);
+      return;
     }
 
-    const { data, count, error } = await query
-      .order("created_at", { ascending: false })
-      .range(from, to);
+    if (rpcError) {
+      console.warn(
+        "[catalog] RPC get_catalog_page indisponible — exécutez db/catalog_search_unaccent.sql pour la recherche sans accent.",
+        rpcError.message,
+      );
+    }
+
+    const { data, count, error } = await fetchCatalogPageViaQuery(
+      mode,
+      searchQuery,
+      activeFilters,
+      from,
+      to,
+    );
 
     if (!error) {
       setDocuments((data || []) as CatalogDocument[]);
@@ -153,7 +277,7 @@ export function useCatalogDocuments(mode: CatalogMode) {
     }
 
     setLoading(false);
-  }, [activeFilters, mode, page]);
+  }, [activeFilters, mode, page, searchQuery]);
 
   useEffect(() => {
     void fetchDocuments();
@@ -202,6 +326,8 @@ export function useCatalogDocuments(mode: CatalogMode) {
     loading,
     filters,
     applyFilters,
+    searchInput,
+    setSearchInput,
     page,
     setPage,
     totalCount,

@@ -12,6 +12,8 @@ export function useEpreuvesData() {
     filteredEpreuves: catalog.documents,
     filters: catalog.filters,
     applyFilters: catalog.applyFilters,
+    searchInput: catalog.searchInput,
+    setSearchInput: catalog.setSearchInput,
     page: catalog.page,
     setPage: catalog.setPage,
     totalCount: catalog.totalCount,
