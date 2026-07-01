@@ -2,9 +2,11 @@ export type DashboardDocument = {
   id: string;
   titre: string;
   type: string;
+  etablissement: string;
   filiere: string;
   ue: string;
   annee: string;
+  niveau: string;
   session: string | null;
   soumis_par: string | null;
   created_at: string;

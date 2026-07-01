@@ -78,8 +78,10 @@ export default function RessourcesPageContent() {
                   titre={ressource.titre}
                   badgeLabel={ressource.type}
                   meta={[
+                    { label: "Établissement", value: ressource.etablissement },
                     { label: "Filière", value: ressource.filiere },
                     { label: "Année", value: ressource.annee },
+                    { label: "Niveau", value: ressource.niveau },
                   ]}
                   filePath={ressource.file_path}
                   downloadFileName={ressource.original_file_name}

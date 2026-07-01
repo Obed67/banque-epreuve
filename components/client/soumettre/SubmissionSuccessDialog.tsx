@@ -108,6 +108,15 @@ export default function SubmissionSuccessDialog({
                 <div className="h-px bg-slate-100" />
                 <div className="flex items-start justify-between gap-3">
                   <span className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                    Établissement
+                  </span>
+                  <span className="max-w-[65%] text-right text-sm font-semibold text-slate-900">
+                    {submittedInfo.etablissement}
+                  </span>
+                </div>
+                <div className="h-px bg-slate-100" />
+                <div className="flex items-start justify-between gap-3">
+                  <span className="text-xs font-medium uppercase tracking-wide text-slate-500">
                     Filière
                   </span>
                   <span className="max-w-[65%] text-right text-sm font-semibold text-slate-900">

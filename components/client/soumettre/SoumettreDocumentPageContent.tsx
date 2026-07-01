@@ -10,6 +10,8 @@ import {
 import { getSubmissionFieldErrors } from "../../../lib/submissionValidation";
 import { notifyAdminOfSubmission } from "../../../lib/notifySubmission";
 import { trackSubmission } from "../../../lib/analytics";
+import type { ReferentielDocumentField } from "../../../lib/referenceLabels";
+import { suggestReferentielValuesFromClient } from "../../../lib/suggestReferentielClient";
 import { useSubmissionOptions } from "../../../lib/hooks/useSubmissionOptions";
 import SubmissionForm from "./SubmissionForm";
 import SubmissionInfoCard from "./SubmissionInfoCard";
@@ -24,22 +26,26 @@ import type {
 const INITIAL_FORM: SubmissionFormData = {
   typeDocument: "",
   customTypeDocument: "",
+  etablissement: "",
+  customEtablissement: "",
   filiere: "",
   customFiliere: "",
   ue: "",
   customUe: "",
   annee: "",
   customAnnee: "",
+  niveau: "",
+  customNiveau: "",
   session: "",
 };
 
 export default function SoumettreDocumentPageContent() {
   const {
     options,
-    ensureCustomValue,
     loading: optionsLoading,
     isReady,
     error: optionsError,
+    reloadOptions,
   } = useSubmissionOptions();
   const [formData, setFormData] = useState<SubmissionFormData>(INITIAL_FORM);
   const [status, setStatus] = useState<SubmissionStatus>("idle");
@@ -122,6 +128,10 @@ export default function SoumettreDocumentPageContent() {
       formData.typeDocument === "Autre (à préciser)"
         ? formData.customTypeDocument.trim()
         : formData.typeDocument;
+    const resolvedEtablissement =
+      formData.etablissement === "Autre (à préciser)"
+        ? formData.customEtablissement.trim()
+        : formData.etablissement;
     const resolvedFiliere =
       formData.filiere === "Autre (à préciser)"
         ? formData.customFiliere.trim()
@@ -134,6 +144,10 @@ export default function SoumettreDocumentPageContent() {
       formData.annee === "Autre (à préciser)"
         ? formData.customAnnee.trim()
         : formData.annee;
+    const resolvedNiveau =
+      formData.niveau === "Autre (à préciser)"
+        ? formData.customNiveau.trim()
+        : formData.niveau;
 
     const validationErrors = getSubmissionFieldErrors(formData, file);
     if (Object.keys(validationErrors).length > 0) {
@@ -183,9 +197,11 @@ export default function SoumettreDocumentPageContent() {
         .insert([
           {
             titre,
+            etablissement: resolvedEtablissement,
             filiere: resolvedFiliere,
             ue: resolvedUe,
             annee: resolvedAnnee,
+            niveau: resolvedNiveau,
             session: formData.session || null,
             type: resolvedType,
             file_path: storageKey,
@@ -202,38 +218,63 @@ export default function SoumettreDocumentPageContent() {
         trackSubmission(insertedDocument.id);
       }
 
+      setSubmittedInfo({
+        titre,
+        typeDocument: resolvedType,
+        etablissement: resolvedEtablissement,
+        filiere: resolvedFiliere,
+        annee: resolvedAnnee,
+        niveau: resolvedNiveau,
+      });
+      setSuccessPopupOpen(true);
+      resetForm();
+
       void notifyAdminOfSubmission({
         documentId: insertedDocument?.id,
         titre,
         type: resolvedType,
+        etablissement: resolvedEtablissement,
         filiere: resolvedFiliere,
         ue: resolvedUe,
         annee: resolvedAnnee,
+        niveau: resolvedNiveau,
         session: formData.session || null,
         fileName: originalFileName,
       });
 
-      // Try to enrich reference tables with user-added values (if policies allow).
+      const customReferentielValues: {
+        field: ReferentielDocumentField;
+        label: string;
+      }[] = [];
+
       if (formData.typeDocument === "Autre (à préciser)") {
-        await ensureCustomValue("document_types", resolvedType);
+        customReferentielValues.push({ field: "type", label: resolvedType });
+      }
+      if (formData.etablissement === "Autre (à préciser)") {
+        customReferentielValues.push({
+          field: "etablissement",
+          label: resolvedEtablissement,
+        });
       }
       if (formData.filiere === "Autre (à préciser)") {
-        await ensureCustomValue("filieres", resolvedFiliere);
+        customReferentielValues.push({ field: "filiere", label: resolvedFiliere });
       }
       if (formData.ue === "Autre (à préciser)") {
-        await ensureCustomValue("ues", resolvedUe);
+        customReferentielValues.push({ field: "ue", label: resolvedUe });
       }
       if (formData.annee === "Autre (à préciser)") {
-        await ensureCustomValue("annees", resolvedAnnee);
+        customReferentielValues.push({ field: "annee", label: resolvedAnnee });
+      }
+      if (formData.niveau === "Autre (à préciser)") {
+        customReferentielValues.push({ field: "niveau", label: resolvedNiveau });
       }
 
-      setSubmittedInfo({
-        titre,
-        typeDocument: resolvedType,
-        filiere: resolvedFiliere,
-      });
-      setSuccessPopupOpen(true);
-      resetForm();
+      if (insertedDocument?.id && customReferentielValues.length > 0) {
+        void suggestReferentielValuesFromClient({
+          documentId: insertedDocument.id,
+          values: customReferentielValues,
+        }).then(() => reloadOptions());
+      }
     } catch (error: any) {
       setStatus("error");
       setErrorMessage(
@@ -260,7 +301,7 @@ export default function SoumettreDocumentPageContent() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-6 xl:grid-cols-3 xl:items-start">
           <SubmissionForm
             key={formKey}
             formData={formData}
@@ -277,7 +318,7 @@ export default function SoumettreDocumentPageContent() {
             globalError={!isReady ? optionsError : ""}
             fieldErrors={fieldErrors}
           />
-          <div className="space-y-6">
+          <div className="space-y-6 xl:sticky xl:top-24">
             <SubmissionInfoCard />
           </div>
         </div>

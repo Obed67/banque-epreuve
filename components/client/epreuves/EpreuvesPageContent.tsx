@@ -56,9 +56,11 @@ export default function EpreuvesPageContent() {
                   titre={epreuve.titre}
                   badgeLabel={epreuve.session || "Épreuve"}
                   meta={[
+                    { label: "Établissement", value: epreuve.etablissement },
                     { label: "Filière", value: epreuve.filiere },
                     { label: "UE", value: epreuve.ue },
                     { label: "Année", value: epreuve.annee },
+                    { label: "Niveau", value: epreuve.niveau },
                   ]}
                   filePath={epreuve.file_path}
                   downloadFileName={epreuve.original_file_name}

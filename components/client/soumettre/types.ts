@@ -1,23 +1,31 @@
 export type SubmissionFieldKey =
   | "typeDocument"
   | "customTypeDocument"
+  | "etablissement"
+  | "customEtablissement"
   | "filiere"
   | "customFiliere"
-  | "ue"
-  | "customUe"
   | "annee"
   | "customAnnee"
+  | "niveau"
+  | "customNiveau"
+  | "ue"
+  | "customUe"
   | "file";
 
 export type SubmissionFormData = {
   typeDocument: string;
   customTypeDocument: string;
+  etablissement: string;
+  customEtablissement: string;
   filiere: string;
   customFiliere: string;
-  ue: string;
-  customUe: string;
   annee: string;
   customAnnee: string;
+  niveau: string;
+  customNiveau: string;
+  ue: string;
+  customUe: string;
   session: string;
 };
 
@@ -26,5 +34,8 @@ export type SubmissionStatus = "idle" | "uploading" | "error";
 export type SubmittedInfo = {
   titre: string;
   typeDocument: string;
+  etablissement: string;
   filiere: string;
+  annee: string;
+  niveau: string;
 };

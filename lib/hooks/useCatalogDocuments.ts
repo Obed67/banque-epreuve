@@ -5,15 +5,17 @@ import { supabase } from "@/lib/supabaseClient";
 import { GRID_PAGE_SIZE, getTotalPages } from "@/lib/pagination";
 
 export const CATALOG_DOCUMENT_COLUMNS =
-  "id,titre,type,filiere,ue,annee,session,file_path,original_file_name,created_at";
+  "id,titre,type,etablissement,filiere,ue,annee,niveau,session,file_path,original_file_name,created_at";
 
 export type CatalogDocument = {
   id: string;
   titre: string;
   type: string;
+  etablissement: string;
   filiere: string;
   ue: string;
   annee: string;
+  niveau: string;
   session: string | null;
   file_path: string;
   original_file_name?: string | null;
@@ -59,25 +61,38 @@ export function useCatalogDocuments(mode: CatalogMode) {
   );
   const [loading, setLoading] = useState(true);
   const [filterOptions, setFilterOptions] = useState<{
+    etablissements: string[];
     filieres: string[];
     ues: string[];
     annees: string[];
+    niveaux: string[];
     types: string[];
     sessions: string[];
   }>({
+    etablissements: [],
     filieres: [],
     ues: [],
     annees: [],
+    niveaux: [],
     types: [],
     sessions: SESSION_OPTIONS,
   });
 
   useEffect(() => {
     const loadFilterOptions = async () => {
-      const [filieresRes, uesRes, anneesRes, typesRes] = await Promise.all([
+      const [
+        etablissementsRes,
+        filieresRes,
+        uesRes,
+        anneesRes,
+        niveauxRes,
+        typesRes,
+      ] = await Promise.all([
+        supabase.from("etablissements").select("label,is_active,sort_order"),
         supabase.from("filieres").select("label,is_active,sort_order"),
         supabase.from("ues").select("label,is_active,sort_order"),
         supabase.from("annees").select("label,is_active,sort_order"),
+        supabase.from("niveaux").select("label,is_active,sort_order"),
         supabase.from("document_types").select("label,is_active,sort_order"),
       ]);
 
@@ -86,9 +101,11 @@ export function useCatalogDocuments(mode: CatalogMode) {
       );
 
       setFilterOptions({
+        etablissements: sortLabels((etablissementsRes.data || []) as RefRow[]),
         filieres: sortLabels((filieresRes.data || []) as RefRow[]),
         ues: sortLabels((uesRes.data || []) as RefRow[]),
         annees: sortLabels((anneesRes.data || []) as RefRow[]),
+        niveaux: sortLabels((niveauxRes.data || []) as RefRow[]),
         types,
         sessions: SESSION_OPTIONS,
       });
@@ -104,6 +121,9 @@ export function useCatalogDocuments(mode: CatalogMode) {
 
     let query = buildBaseQuery(mode);
 
+    if (activeFilters.etablissement) {
+      query = query.eq("etablissement", activeFilters.etablissement);
+    }
     if (activeFilters.filiere) {
       query = query.eq("filiere", activeFilters.filiere);
     }
@@ -112,6 +132,9 @@ export function useCatalogDocuments(mode: CatalogMode) {
     }
     if (activeFilters.annee) {
       query = query.eq("annee", activeFilters.annee);
+    }
+    if (activeFilters.niveau) {
+      query = query.eq("niveau", activeFilters.niveau);
     }
     if (activeFilters.session) {
       query = query.eq("session", activeFilters.session);
@@ -139,17 +162,29 @@ export function useCatalogDocuments(mode: CatalogMode) {
   const filters = useMemo(() => {
     if (mode === "epreuves") {
       return [
+        {
+          label: "Établissement",
+          name: "etablissement",
+          options: filterOptions.etablissements,
+        },
         { label: "Filière", name: "filiere", options: filterOptions.filieres },
         { label: "UE", name: "ue", options: filterOptions.ues },
         { label: "Année", name: "annee", options: filterOptions.annees },
+        { label: "Niveau", name: "niveau", options: filterOptions.niveaux },
         { label: "Session", name: "session", options: filterOptions.sessions },
       ];
     }
 
     return [
       { label: "Type", name: "type", options: filterOptions.types },
+      {
+        label: "Établissement",
+        name: "etablissement",
+        options: filterOptions.etablissements,
+      },
       { label: "Filière", name: "filiere", options: filterOptions.filieres },
       { label: "Année", name: "annee", options: filterOptions.annees },
+      { label: "Niveau", name: "niveau", options: filterOptions.niveaux },
     ];
   }, [filterOptions, mode]);
 

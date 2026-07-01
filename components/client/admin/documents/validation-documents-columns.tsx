@@ -53,6 +53,10 @@ export function useValidationDocumentsColumns({
         ),
       },
       {
+        accessorKey: "etablissement",
+        header: "Établissement",
+      },
+      {
         accessorKey: "filiere",
         header: "Filière",
       },
@@ -62,6 +66,10 @@ export function useValidationDocumentsColumns({
         cell: ({ row }) => (
           <span className="max-w-[180px] truncate">{row.original.ue}</span>
         ),
+      },
+      {
+        accessorKey: "niveau",
+        header: "Niveau",
       },
       {
         accessorKey: "annee",

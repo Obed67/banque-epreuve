@@ -15,6 +15,15 @@ export function getSubmissionFieldErrors(
     errors.customTypeDocument = true;
   }
 
+  if (!formData.etablissement) {
+    errors.etablissement = true;
+  } else if (
+    formData.etablissement === "Autre (à préciser)" &&
+    !formData.customEtablissement.trim()
+  ) {
+    errors.customEtablissement = true;
+  }
+
   if (!formData.filiere) {
     errors.filiere = true;
   } else if (
@@ -31,6 +40,15 @@ export function getSubmissionFieldErrors(
     !formData.customAnnee.trim()
   ) {
     errors.customAnnee = true;
+  }
+
+  if (!formData.niveau) {
+    errors.niveau = true;
+  } else if (
+    formData.niveau === "Autre (à préciser)" &&
+    !formData.customNiveau.trim()
+  ) {
+    errors.customNiveau = true;
   }
 
   if (!formData.ue) {

@@ -12,7 +12,7 @@ import { formInputCompactClass } from "@/lib/form-styles";
 import { useAdminAuth } from "@/lib/hooks/useAdminAuth";
 import { supabase } from "@/lib/supabaseClient";
 
-type RefTable = "document_types" | "filieres" | "ues" | "annees";
+type RefTable = "document_types" | "filieres" | "ues" | "annees" | "niveaux" | "etablissements";
 
 type RefItem = {
   id: string;
@@ -24,17 +24,21 @@ type RefItem = {
 
 const TABLE_CONFIG: { table: RefTable; title: string }[] = [
   { table: "document_types", title: "Types de document" },
+  { table: "etablissements", title: "Établissements" },
   { table: "filieres", title: "Filières" },
   { table: "ues", title: "UE" },
   { table: "annees", title: "Années" },
+  { table: "niveaux", title: "Niveaux" },
 ];
 
 function createTableRecord<T>(factory: () => T): Record<RefTable, T> {
   return {
     document_types: factory(),
+    etablissements: factory(),
     filieres: factory(),
     ues: factory(),
     annees: factory(),
+    niveaux: factory(),
   };
 }
 
@@ -64,9 +68,11 @@ export default function AdminReferentielsPageContent() {
     Record<RefTable, Record<string, string>>
   >({
     document_types: {},
+    etablissements: {},
     filieres: {},
     ues: {},
     annees: {},
+    niveaux: {},
   });
   const [dragging, setDragging] = useState<{
     table: RefTable;
