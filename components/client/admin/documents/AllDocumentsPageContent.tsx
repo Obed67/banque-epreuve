@@ -41,7 +41,7 @@ export default function AllDocumentsPageContent() {
     const { data, error } = await supabase
       .from("epreuves")
       .select(
-        "id,titre,type,filiere,ue,annee,session,soumis_par,created_at,statut,file_path,original_file_name",
+        "id,titre,type,etablissement,filiere,ue,annee,niveau,session,soumis_par,created_at,statut,file_path,original_file_name",
       )
       .order("created_at", { ascending: false });
 
@@ -68,7 +68,7 @@ export default function AllDocumentsPageContent() {
     const term = query.trim().toLowerCase();
     if (!term) return documents;
     return documents.filter((doc) =>
-      [doc.titre, doc.type, doc.filiere, doc.ue, doc.annee, doc.statut]
+      [doc.titre, doc.type, doc.etablissement, doc.filiere, doc.ue, doc.annee, doc.niveau, doc.statut]
         .join(" ")
         .toLowerCase()
         .includes(term),

@@ -70,14 +70,17 @@ export default function CatalogDocumentCard({
         </div>
       </div>
 
-      <dl className="space-y-1.5 border-t border-gray-50 pt-3">
+      <dl className="space-y-2 border-t border-gray-50 pt-3">
         {meta.map((row) => (
-          <div key={row.label} className="flex min-w-0 items-center gap-2 text-sm">
-            <dt className="w-[4.5rem] shrink-0 font-medium text-gray-400">
-              {row.label}
+          <div
+            key={row.label}
+            className="grid grid-cols-[auto_minmax(0,1fr)] items-baseline gap-x-2 text-sm"
+          >
+            <dt className="shrink-0 font-medium whitespace-nowrap text-gray-500">
+              {row.label}&nbsp;:
             </dt>
             <dd
-              className="min-w-0 flex-1 truncate font-medium text-gray-900"
+              className="min-w-0 truncate font-medium text-gray-900"
               title={row.value}
             >
               {row.value}

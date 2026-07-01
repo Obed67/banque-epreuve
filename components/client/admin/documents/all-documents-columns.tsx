@@ -77,6 +77,20 @@ export function useAllDocumentsColumns({
         ),
       },
       {
+        accessorKey: "etablissement",
+        header: "Établissement",
+        cell: ({ row }) => (
+          <input
+            value={getValue(row.original, "etablissement")}
+            onChange={(e) =>
+              setDraftValue(row.original.id, "etablissement", e.target.value)
+            }
+            className={`${formInputCompactClass} min-w-[140px]`}
+            placeholder="Établissement"
+          />
+        ),
+      },
+      {
         accessorKey: "filiere",
         header: "Filière",
         cell: ({ row }) => (
@@ -115,6 +129,20 @@ export function useAllDocumentsColumns({
             }
             className={`${formInputCompactClass} w-24`}
             placeholder="Année"
+          />
+        ),
+      },
+      {
+        accessorKey: "niveau",
+        header: "Niveau",
+        cell: ({ row }) => (
+          <input
+            value={getValue(row.original, "niveau")}
+            onChange={(e) =>
+              setDraftValue(row.original.id, "niveau", e.target.value)
+            }
+            className={`${formInputCompactClass} w-28`}
+            placeholder="Niveau"
           />
         ),
       },

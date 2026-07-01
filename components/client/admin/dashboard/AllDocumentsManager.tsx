@@ -52,7 +52,7 @@ export default function AllDocumentsManager({
     const { data, error } = await supabase
       .from("epreuves")
       .select(
-        "id,titre,type,filiere,ue,annee,session,soumis_par,created_at,statut,file_path",
+        "id,titre,type,etablissement,filiere,ue,annee,niveau,session,soumis_par,created_at,statut,file_path",
       )
       .order("created_at", { ascending: false });
 
@@ -218,6 +218,14 @@ export default function AllDocumentsManager({
                         placeholder="Type"
                       />
                       <input
+                        value={getDraftValue(doc, "etablissement")}
+                        onChange={(e) =>
+                          setDraftValue(doc.id, "etablissement", e.target.value)
+                        }
+                        className={formInputCompactClass}
+                        placeholder="Établissement"
+                      />
+                      <input
                         value={getDraftValue(doc, "filiere")}
                         onChange={(e) =>
                           setDraftValue(doc.id, "filiere", e.target.value)
@@ -240,6 +248,14 @@ export default function AllDocumentsManager({
                         }
                         className={formInputCompactClass}
                         placeholder="Année"
+                      />
+                      <input
+                        value={getDraftValue(doc, "niveau")}
+                        onChange={(e) =>
+                          setDraftValue(doc.id, "niveau", e.target.value)
+                        }
+                        className={formInputCompactClass}
+                        placeholder="Niveau"
                       />
                       <input
                         value={getDraftValue(doc, "session")}

@@ -2,9 +2,11 @@ export type SubmissionNotificationPayload = {
   documentId?: string;
   titre: string;
   type: string;
+  etablissement: string;
   filiere: string;
   ue: string;
   annee: string;
+  niveau: string;
   session?: string | null;
   fileName?: string;
 };
@@ -45,7 +47,6 @@ export function getBrevoConfig(): BrevoConfig | null {
     adminEmail,
     appUrl: (
       process.env.NEXT_PUBLIC_APP_URL ||
-      process.env.APP_URL ||
       "http://localhost:3000"
     ).trim(),
   };
@@ -67,9 +68,11 @@ function buildSubmissionEmailHtml(
   const rows = [
     ["Titre", payload.titre],
     ["Type", payload.type],
+    ["Établissement", payload.etablissement],
     ["Filière", payload.filiere],
     ["UE", payload.ue],
     ["Année", payload.annee],
+    ["Niveau", payload.niveau],
     ...(payload.session ? [["Session", payload.session] as const] : []),
     ...(payload.fileName ? [["Fichier", payload.fileName] as const] : []),
     ...(payload.documentId ? [["ID", payload.documentId] as const] : []),

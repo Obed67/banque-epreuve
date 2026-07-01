@@ -33,10 +33,29 @@ export default function FilterBar({ filters, onFilterChange }: FilterBarProps) {
   };
 
   const hasActiveFilters = Object.keys(selectedFilters).length > 0;
+  const gridCols =
+    filters.length <= 3
+      ? 'sm:grid-cols-2 lg:grid-cols-3'
+      : filters.length <= 5
+        ? 'sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5'
+        : 'sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6';
 
   return (
-    <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 mb-8">
-      <div className="flex flex-col md:flex-row flex-wrap gap-4 items-end">
+    <div className="mb-8 rounded-xl border border-gray-100 bg-white p-4 shadow-sm md:p-5">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-2 border-b border-gray-100 pb-3">
+        <p className="text-sm font-semibold text-[#0f172a]">Filtrer les documents</p>
+        {hasActiveFilters && (
+          <button
+            type="button"
+            onClick={handleReset}
+            className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-50 hover:text-gray-900 cursor-pointer"
+          >
+            Réinitialiser les filtres
+          </button>
+        )}
+      </div>
+
+      <div className={['grid grid-cols-1 gap-3', gridCols].join(' ')}>
         {filters.map((filter) => (
           <AppSelect
             key={filter.name}
@@ -50,19 +69,9 @@ export default function FilterBar({ filters, onFilterChange }: FilterBarProps) {
               { value: ALL_VALUE, label: 'Tous' },
               ...filter.options.map((option) => ({ value: option, label: option })),
             ]}
-            className="w-full md:flex-1 md:min-w-[200px]"
+            className="w-full min-w-0"
           />
         ))}
-
-        {hasActiveFilters && (
-          <button
-            type="button"
-            onClick={handleReset}
-            className="w-full md:w-auto px-6 py-2.5 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:text-gray-900 transition-colors cursor-pointer"
-          >
-            Réinitialiser
-          </button>
-        )}
       </div>
     </div>
   );

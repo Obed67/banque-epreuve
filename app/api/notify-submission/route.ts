@@ -6,9 +6,11 @@ const submissionNotificationSchema = z.object({
   documentId: z.string().uuid().optional(),
   titre: z.string().min(1).max(500),
   type: z.string().min(1).max(120),
+  etablissement: z.string().min(1).max(200),
   filiere: z.string().min(1).max(120),
   ue: z.string().min(1).max(200),
   annee: z.string().min(1).max(20),
+  niveau: z.string().min(1).max(120),
   session: z.string().max(120).nullable().optional(),
   fileName: z.string().max(255).optional(),
 });
