@@ -37,6 +37,9 @@ const INITIAL_FORM: SubmissionFormData = {
   niveau: "",
   customNiveau: "",
   session: "",
+  wantsFollowUp: false,
+  contributorName: "",
+  contributorEmail: "",
 };
 
 export default function SoumettreDocumentPageContent() {
@@ -122,6 +125,27 @@ export default function SoumettreDocumentPageContent() {
     }
   };
 
+  const onCheckboxChange = (
+    field: keyof SubmissionFormData,
+    value: boolean,
+  ) => {
+    setFormData((prev) => {
+      const next = { ...prev, [field]: value };
+      if (field === "wantsFollowUp" && !value) {
+        next.contributorName = "";
+        next.contributorEmail = "";
+      }
+      return next;
+    });
+    if (field === "wantsFollowUp" && !value) {
+      clearFieldError("contributorEmail");
+    }
+    if (status === "error") {
+      setStatus("idle");
+      setErrorMessage("");
+    }
+  };
+
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const resolvedType =
@@ -192,6 +216,13 @@ export default function SoumettreDocumentPageContent() {
         throw uploadError;
       }
 
+      const trimmedContributorName = formData.contributorName.trim();
+      const trimmedContributorEmail = formData.contributorEmail.trim();
+      const displayName =
+        formData.wantsFollowUp && trimmedContributorName
+          ? trimmedContributorName
+          : "Anonyme";
+
       const { data: insertedDocument, error: dbError } = await supabase
         .from("epreuves")
         .insert([
@@ -206,7 +237,7 @@ export default function SoumettreDocumentPageContent() {
             type: resolvedType,
             file_path: storageKey,
             original_file_name: originalFileName,
-            soumis_par: "Anonyme",
+            soumis_par: displayName,
             statut: "En attente",
           },
         ])
@@ -216,6 +247,29 @@ export default function SoumettreDocumentPageContent() {
 
       if (insertedDocument?.id) {
         trackSubmission(insertedDocument.id);
+      }
+
+      if (
+        formData.wantsFollowUp &&
+        trimmedContributorEmail &&
+        insertedDocument?.id
+      ) {
+        const { error: contactError } = await supabase
+          .from("submission_contacts")
+          .insert([
+            {
+              document_id: insertedDocument.id,
+              contributor_name: trimmedContributorName || null,
+              contributor_email: trimmedContributorEmail,
+              notify_contributor: true,
+            },
+          ]);
+        if (contactError) {
+          console.warn(
+            "[submission] impossible d'enregistrer le contact",
+            contactError,
+          );
+        }
       }
 
       setSubmittedInfo({
@@ -313,6 +367,7 @@ export default function SoumettreDocumentPageContent() {
             onFileChange={onFileChange}
             onFileSelect={handleFileSelect}
             onSelectChange={onSelectChange}
+            onCheckboxChange={onCheckboxChange}
             onSubmit={onSubmit}
             disabled={!isReady || optionsLoading}
             globalError={!isReady ? optionsError : ""}

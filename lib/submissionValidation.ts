@@ -64,5 +64,18 @@ export function getSubmissionFieldErrors(
     errors.file = true;
   }
 
+  if (formData.wantsFollowUp) {
+    const email = formData.contributorEmail.trim();
+    if (!email || !isValidEmail(email)) {
+      errors.contributorEmail = true;
+    }
+  }
+
   return errors;
+}
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+export function isValidEmail(value: string) {
+  return EMAIL_REGEX.test(value.trim());
 }
