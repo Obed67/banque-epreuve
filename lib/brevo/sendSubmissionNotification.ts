@@ -120,7 +120,7 @@ export async function sendSubmissionNotificationEmail(
         email: config.senderEmail,
       },
       to: [{ email: config.adminEmail }],
-      subject: `[Banque Epreuve] Nouvelle soumission — ${payload.titre}`,
+      subject: `Nouvelle soumission — ${payload.titre}`,
       htmlContent: buildSubmissionEmailHtml(payload, config),
     }),
   });

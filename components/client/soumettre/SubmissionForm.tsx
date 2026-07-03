@@ -6,7 +6,7 @@ import Card from "../../../app/components/Card";
 import Button from "../../../app/components/Button";
 import { formLabelErrorClass } from "@/lib/form-styles";
 import { cn } from "@/lib/utils";
-import { FieldInput, FieldSelect } from "./SubmissionFormFields";
+import { FieldCheckbox, FieldInput, FieldSelect } from "./SubmissionFormFields";
 import type { SubmissionFieldKey, SubmissionFormData, SubmissionStatus } from "./types";
 
 import { isEpreuveType } from "@/lib/documentType";
@@ -31,6 +31,7 @@ type SubmissionFormProps = {
   onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onFileSelect: (file: File) => void;
   onSelectChange: (field: keyof SubmissionFormData, value: string) => void;
+  onCheckboxChange: (field: keyof SubmissionFormData, value: boolean) => void;
   onSubmit: (e: React.FormEvent) => void;
   disabled?: boolean;
   globalError?: string;
@@ -71,6 +72,7 @@ export default function SubmissionForm({
   onFileChange,
   onFileSelect,
   onSelectChange,
+  onCheckboxChange,
   onSubmit,
   disabled = false,
   globalError = "",
@@ -275,6 +277,44 @@ export default function SubmissionForm({
                 />
               )}
             </FieldGroup>
+          </div>
+        </FormSection>
+
+        <FormSection
+          title="Contributeur (optionnel)"
+          hint="Laissez votre nom et votre email si vous souhaitez être informé du résultat. Ces informations ne sont jamais publiées."
+        >
+          <div className="space-y-3">
+            <FieldCheckbox
+              id="wantsFollowUp"
+              label="Je souhaite être contributeur officiel de la plateforme."
+              checked={formData.wantsFollowUp}
+              onCheckedChange={(value) => onCheckboxChange("wantsFollowUp", value)}
+            />
+
+            {formData.wantsFollowUp && (
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <FieldInput
+                  id="contributorName"
+                  label="Pseudo (optionnel)"
+                  value={formData.contributorName}
+                  onChange={onInputChange}
+                  placeholder="Ex : Jean D."
+                  required={false}
+                  autoComplete="name"
+                />
+                <FieldInput
+                  id="contributorEmail"
+                  type="email"
+                  label="Email *"
+                  value={formData.contributorEmail}
+                  onChange={onInputChange}
+                  placeholder="prenom.nom@exemple.com"
+                  hasError={!!fieldErrors.contributorEmail}
+                  autoComplete="email"
+                />
+              </div>
+            )}
           </div>
         </FormSection>
 

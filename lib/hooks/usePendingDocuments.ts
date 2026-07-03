@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { openDocumentInNewTab } from "@/lib/documentStorage";
 import { supabase } from "@/lib/supabaseClient";
+import { notifyContributor } from "@/lib/notifyContributor";
 
 export interface PendingDocument {
   id: string;
@@ -69,6 +70,8 @@ export function usePendingDocuments(enabled: boolean) {
 
     setDocuments((prev) => prev.filter((d) => d.id !== id));
     setProcessingId(null);
+
+    void notifyContributor({ documentId: id, status: statut });
   };
 
   return {

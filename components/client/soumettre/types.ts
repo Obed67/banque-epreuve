@@ -11,7 +11,8 @@ export type SubmissionFieldKey =
   | "customNiveau"
   | "ue"
   | "customUe"
-  | "file";
+  | "file"
+  | "contributorEmail";
 
 export type SubmissionFormData = {
   typeDocument: string;
@@ -27,6 +28,9 @@ export type SubmissionFormData = {
   ue: string;
   customUe: string;
   session: string;
+  wantsFollowUp: boolean;
+  contributorName: string;
+  contributorEmail: string;
 };
 
 export type SubmissionStatus = "idle" | "uploading" | "error";

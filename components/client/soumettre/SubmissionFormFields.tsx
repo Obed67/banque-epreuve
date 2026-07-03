@@ -70,6 +70,10 @@ type FieldInputProps = {
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   className?: string;
   hasError?: boolean;
+  type?: string;
+  required?: boolean;
+  autoComplete?: string;
+  hint?: string;
 };
 
 export function FieldInput({
@@ -80,6 +84,10 @@ export function FieldInput({
   onChange,
   className,
   hasError = false,
+  type = "text",
+  required = true,
+  autoComplete,
+  hint,
 }: FieldInputProps) {
   return (
     <div>
@@ -92,17 +100,57 @@ export function FieldInput({
       <input
         id={id}
         name={id}
-        type="text"
+        type={type}
         value={value}
         onChange={onChange}
-        required
+        required={required}
         placeholder={placeholder}
+        autoComplete={autoComplete}
         className={cn(
           formInputClass,
           hasError && formFieldErrorClass,
           className,
         )}
       />
+      {hint && !hasError && (
+        <p className="mt-1 text-xs text-gray-500">{hint}</p>
+      )}
     </div>
+  );
+}
+
+type FieldCheckboxProps = {
+  id: string;
+  label: string;
+  hint?: string;
+  checked: boolean;
+  onCheckedChange: (checked: boolean) => void;
+};
+
+export function FieldCheckbox({
+  id,
+  label,
+  hint,
+  checked,
+  onCheckedChange,
+}: FieldCheckboxProps) {
+  return (
+    <label
+      htmlFor={id}
+      className="flex cursor-pointer items-start gap-3 rounded-lg border border-gray-100 bg-gray-50/60 p-3 transition-colors hover:bg-gray-50"
+    >
+      <input
+        id={id}
+        name={id}
+        type="checkbox"
+        checked={checked}
+        onChange={(e) => onCheckedChange(e.target.checked)}
+        className="mt-0.5 h-4 w-4 shrink-0 rounded border-gray-300 text-[#0077d2] focus:ring-[#0077d2]"
+      />
+      <div className="flex flex-col gap-0.5">
+        <span className="text-sm font-medium text-[#0f172a]">{label}</span>
+        {hint && <span className="text-xs text-gray-500">{hint}</span>}
+      </div>
+    </label>
   );
 }
