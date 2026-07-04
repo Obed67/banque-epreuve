@@ -43,3 +43,8 @@ export type SubmittedInfo = {
   annee: string;
   niveau: string;
 };
+
+export type SubmissionDuplicateInfo = {
+  matchType: "exact" | "logical";
+  existingTitre?: string;
+};

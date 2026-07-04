@@ -18,6 +18,7 @@ type DocumentModerationConfirmDialogProps = {
   onOpenChange: (open: boolean) => void;
   action: ModerationConfirmAction;
   documentTitle: string;
+  duplicateWarning?: string | null;
   loading?: boolean;
   onConfirm: () => void | Promise<void>;
 };
@@ -44,6 +45,7 @@ export default function DocumentModerationConfirmDialog({
   onOpenChange,
   action,
   documentTitle,
+  duplicateWarning,
   loading,
   onConfirm,
 }: DocumentModerationConfirmDialogProps) {
@@ -71,6 +73,11 @@ export default function DocumentModerationConfirmDialog({
               <p className="rounded-lg border border-blue-50 bg-[#f7fbff] px-3 py-2 font-medium text-[#0f172a]">
                 {documentTitle}
               </p>
+              {duplicateWarning && (
+                <p className="rounded-lg border border-orange-100 bg-orange-50 px-3 py-2 text-orange-800">
+                  <strong>Doublon détecté :</strong> {duplicateWarning}
+                </p>
+              )}
             </div>
           </AlertDialogDescription>
         </AlertDialogHeader>

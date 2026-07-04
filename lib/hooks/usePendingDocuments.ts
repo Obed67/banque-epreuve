@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { openDocumentInNewTab } from "@/lib/documentStorage";
+import type { DuplicateMatchType } from "@/lib/documentFingerprint";
 import { supabase } from "@/lib/supabaseClient";
 import { notifyContributor } from "@/lib/notifyContributor";
 
@@ -20,6 +21,44 @@ export interface PendingDocument {
   statut: string;
   file_path: string;
   original_file_name?: string | null;
+  content_hash?: string | null;
+  fingerprint?: string | null;
+  duplicate_of_id?: string | null;
+  duplicate_match_type?: DuplicateMatchType | null;
+  duplicate_existing?: {
+    id: string;
+    titre: string;
+    statut: string;
+    file_path: string;
+  } | null;
+}
+
+async function enrichDuplicateInfo(
+  documents: PendingDocument[],
+): Promise<PendingDocument[]> {
+  const duplicateIds = Array.from(
+    new Set(
+      documents
+        .map((doc) => doc.duplicate_of_id)
+        .filter((id): id is string => Boolean(id)),
+    ),
+  );
+
+  if (duplicateIds.length === 0) return documents;
+
+  const { data: existingDocs } = await supabase
+    .from("epreuves")
+    .select("id, titre, statut, file_path")
+    .in("id", duplicateIds);
+
+  const byId = new Map((existingDocs ?? []).map((doc) => [doc.id, doc]));
+
+  return documents.map((doc) => ({
+    ...doc,
+    duplicate_existing: doc.duplicate_of_id
+      ? byId.get(doc.duplicate_of_id) ?? null
+      : null,
+  }));
 }
 
 export function usePendingDocuments(enabled: boolean) {
@@ -34,7 +73,11 @@ export function usePendingDocuments(enabled: boolean) {
       .select("*")
       .eq("statut", "En attente")
       .order("created_at", { ascending: false });
-    if (!error) setDocuments(data || []);
+
+    if (!error) {
+      const enriched = await enrichDuplicateInfo((data || []) as PendingDocument[]);
+      setDocuments(enriched);
+    }
     setLoading(false);
   }, []);
 
@@ -49,6 +92,8 @@ export function usePendingDocuments(enabled: boolean) {
 
   const updateStatus = async (id: string, statut: "Validé" | "Rejeté") => {
     setProcessingId(id);
+    const pendingDoc = documents.find((doc) => doc.id === id);
+
     const { data, error } = await supabase
       .from("epreuves")
       .update({ statut })
@@ -71,7 +116,12 @@ export function usePendingDocuments(enabled: boolean) {
     setDocuments((prev) => prev.filter((d) => d.id !== id));
     setProcessingId(null);
 
-    void notifyContributor({ documentId: id, status: statut });
+    const reason =
+      statut === "Rejeté" && pendingDoc?.duplicate_of_id
+        ? "Ce document est déjà présent dans le catalogue ou un fichier identique a déjà été soumis."
+        : null;
+
+    void notifyContributor({ documentId: id, status: statut, reason });
   };
 
   return {
