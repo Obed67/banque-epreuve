@@ -1,143 +1,165 @@
 # Changelog
 
-Toutes les évolutions notables du projet sont suivies ici.
+Historique des évolutions de **Banque Epreuve**.  
+Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) · [SemVer](https://semver.org/lang/fr/)
 
-Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) et SemVer.
+> **État au 4 juillet 2026** — Plateforme fonctionnelle en production-ready : catalogue public, soumission, modération admin, emails Brevo, recherche accent-insensible, détection des doublons. Prochaine étape : espace utilisateur et rôles avancés.
+
+---
 
 ## [Unreleased]
 
-### En cours
+### Prévu — infrastructure
 
-- mise en place d'un **admin principal** (seed initial) pour démarrer la modération
-- workflow « inscription → attente de validation admin → accès accordé »
-- modélisation des rôles applicatifs (`admin`, `user`, `pending`)
+- [ ] **Admin principal seed** : compte admin créé automatiquement au premier déploiement
+- [ ] Workflow **inscription → attente validation admin → accès accordé**
+- [ ] Modélisation des rôles : `admin`, `user`, `pending`
+- [ ] Middleware ou protection serveur renforcée sur `/admin/*` (aujourd'hui : garde côté client via `useAdminAuth`)
 
-### Roadmap produit
+### Prévu — produit
 
-- espace utilisateur connecté
-- favoris sur les épreuves
-- historique personnel des soumissions
-- classement personnel des épreuves par catégories
-- téléchargement public robuste via Storage avec règles sécurisées
-- champ « motif de rejet » côté admin, transmis dans l'email au contributeur
+- [ ] Espace utilisateur connecté
+- [ ] Favoris sur les épreuves / ressources
+- [ ] Historique personnel des soumissions
+- [ ] Classement / organisation personnelle par catégories
+- [ ] **Téléchargement public** robuste (bouton présent, logique Storage/RLS à finaliser)
+- [ ] Champ **motif de rejet** saisi par l'admin, transmis dans l'email au contributeur
+- [ ] Index UNIQUE sur `fingerprint` pour les documents `Validé` (blocage automatique des doublons logiques)
+
+### Notes pour les reprises futures
+
+- Version npm dans `package.json` peut diverger du CHANGELOG — se référer à ce fichier pour l'état fonctionnel.
+- Toute migration SQL non exécutée = fonctionnalité partielle (voir README, section migrations).
+- Documents créés **avant juillet 2026** : exécuter `backfill_document_fingerprints.sql` + `npm run backfill:content-hash`.
+
+---
+
+## [0.2.1] - 2026-07-04
+
+### Ajouté — Détection des doublons
+
+- colonnes `content_hash` (SHA-256 du fichier), `fingerprint` (empreinte métier), `duplicate_of_id`, `duplicate_match_type` sur `epreuves`
+- RPC `check_document_duplicate` (exact = même fichier, logical = même type/établissement/filière/UE/année/niveau/session)
+- calcul hash + fingerprint à chaque soumission (`lib/documentFingerprint.ts`, `lib/checkDocumentDuplicate.ts`)
+- migration `db/document_duplicate_detection.sql`
+- **admin** : badge « Fichier identique » / « Même ressource », lien vers document existant, alerte dans le dialog de modération
+- **contributeur** : dialog d'alerte orange à la soumission si doublon (sans bloquer l'envoi ; pas de dialog succès en parallèle)
+- backfill anciens documents :
+  - `db/backfill_document_fingerprints.sql` (empreintes métier, autonome)
+  - `scripts/backfill-content-hash.mjs` + `npm run backfill:content-hash` (hash fichiers depuis Storage)
 
 ---
 
 ## [0.2.0] - 2026-07-03
 
-Grosse itération : notifications email, référentiels dynamiques, séparation épreuves/ressources, recherche insensible aux accents, filtres mobile et opt-in contributeur.
+Notifications email, référentiels dynamiques, séparation épreuves/ressources, recherche accent-insensible, filtres mobile, opt-in contributeur.
 
 ### Ajouté
 
 #### Notifications email (Brevo)
 
-- intégration Brevo (`lib/brevo/sendSubmissionNotification.ts`, `lib/brevo/sendContributorNotification.ts`)
-- route serveur `POST /api/notify-submission` : email à l'admin à chaque soumission
-- route serveur `POST /api/notify-contributor` : email au contributeur (validé / rejeté)
-- template email « rejeté » bienveillant listant les causes courantes (document illisible / doublon) avec encouragements à re-soumettre
-- variables d'environnement dédiées (`BREVO_API_KEY`, `BREVO_SENDER_EMAIL`, `BREVO_SENDER_NAME`, `ADMIN_NOTIFICATION_EMAIL`)
-- anti-doublon d'envoi via `notified_status` dans `submission_contacts`
+- `lib/brevo/sendSubmissionNotification.ts`, `lib/brevo/sendContributorNotification.ts`
+- `POST /api/notify-submission` — email admin à chaque soumission
+- `POST /api/notify-contributor` — email contributeur (validé / rejeté)
+- template rejet bienveillant (document illisible / doublon)
+- variables : `BREVO_API_KEY`, `BREVO_SENDER_EMAIL`, `BREVO_SENDER_NAME`, `ADMIN_NOTIFICATION_EMAIL`
+- anti-doublon envoi via `notified_status` dans `submission_contacts`
 
 #### Contributeur opt-in
 
-- section « Contributeur (optionnel) » dans le formulaire de soumission
-- case à cocher « Je souhaite être notifié par email » (soumission anonyme par défaut)
-- champs conditionnels : nom affiché (public, remplace « Anonyme ») et email (privé, jamais publié)
-- validation email côté client + regex côté base
-- table dédiée `submission_contacts` avec RLS admin (le public ne peut qu'insérer et uniquement pour un document en attente)
-- migration SQL `db/contributor_email_migration.sql`
+- section « Contributeur (optionnel) » dans le formulaire
+- case notification email, nom affiché optionnel, email privé
+- table `submission_contacts` + RLS admin (`db/contributor_email_migration.sql`)
 
 #### Référentiels dynamiques
 
 - tables `document_types`, `filieres`, `ues`, `annees`, `niveaux`, `etablissements`
-- page admin `/admin/referentiels` pour gérer les listes (ajout, activation, ordre)
-- route serveur `POST /api/suggest-referentiel` : quand un contributeur choisit « Autre », la valeur est proposée en base avec le service role (jamais exposé côté client)
-- migrations SQL `db/submission_reference_schema.sql`, `db/etablissements_niveaux_migration.sql`
+- page `/admin/referentiels`
+- `POST /api/suggest-referentiel` pour les valeurs « Autre »
+- migrations `submission_reference_schema.sql`, `etablissements_niveaux_migration.sql`
 
 #### Recherche catalogue
 
-- barre de recherche sur `/epreuves` et `/ressources` (`app/components/CatalogSearchBar.tsx`)
-- recherche multi-champs (titre, filière, UE, établissement, niveau, année, type, nom de fichier)
-- insensible à la casse et **aux accents** (`algèbre` = `algebre`)
-- côté serveur : RPC Postgres `get_catalog_page` + fonctions `fold_search_text` / `text_matches_unaccent` (translate + lower)
-- côté client : repli `ilike` avec envoi des variantes accentuée et non-accentuée si la RPC est indisponible
-- debounce 300 ms, pagination conservée
-- migration SQL `db/catalog_search_unaccent.sql`
+- `CatalogSearchBar` sur `/epreuves` et `/ressources`
+- multi-champs, insensible casse et accents
+- RPC `get_catalog_page` + `fold_search_text` (`db/catalog_search_unaccent.sql`)
+- repli client `ilike` si RPC indisponible
 
 #### Filtres catalogue
 
-- bouton « Filtrer » sur mobile ouvrant un bottom sheet natif-like
-- pastilles indiquant les filtres actifs sur mobile
-- grille inline conservée sur desktop
-- refonte du composant `FilterBar.tsx`
-- filtres ajoutés : établissement, niveau, type
+- bottom sheet mobile + pastilles filtres actifs
+- filtres : établissement, niveau, type, filière, UE, année, session
 
 #### Épreuves vs Ressources
 
-- séparation basée sur le champ `type` (une seule table `epreuves` en base)
-- `/epreuves` : uniquement les documents de type épreuve, avec gestion des variantes (`Epreuve`, `Épreuve`, `EPREUVE`, `epreuve`, `épreuve`)
-- `/ressources` : tous les autres types (Cours, TD, Mémoire, Support, Autre…)
-- helper `lib/documentType.ts` centralisant la logique de classification
+- une table `epreuves`, séparation par champ `type`
+- `/epreuves` : variantes épreuve (`Epreuve`, `Épreuve`, `EPREUVE`…)
+- `/ressources` : tout le reste
+- `lib/documentType.ts`
 
-#### Nouveaux champs de soumission
+#### Champs de soumission
 
-- `etablissement` (nouvelle table + champ obligatoire)
-- `niveau` (L1 / Licence 1 / M1 / Première année…) — **distinct de l'année**
-- `annee` (année calendaire : 2024, 2025…) — conservée en parallèle
-- `original_file_name` sur `epreuves` (migration `db/epreuves_original_filename.sql`)
-- titre du document déduit automatiquement du nom du fichier uploadé
+- `etablissement`, `niveau` (distinct de `annee`), `original_file_name`
+- titre dérivé du nom de fichier uploadé
 
 #### UX
 
-- refonte du formulaire de soumission en sections (`SubmissionForm.tsx`) : Document / Établissement et parcours / Formation / Contributeur / Fichier
-- carte info sticky sur desktop
-- refonte des cartes catalogue (`CatalogDocumentCard.tsx`) avec grille auto et libellés séparés par « : »
-- confirmation avant validation / rejet d'un document dans l'admin (`DocumentModerationConfirmDialog`)
-- retour de succès immédiat après soumission (notify + suggest-referentiel en arrière-plan)
+- formulaire en sections, carte info sticky, cartes catalogue refondues
+- `DocumentModerationConfirmDialog` avant valider/rejeter
+- succès soumission immédiat (notify + suggest en arrière-plan)
 
 ### Modifié
 
-- `soumis_par` prend la valeur du nom du contributeur si renseigné, sinon « Anonyme »
-- policy RLS `epreuves` permettant à l'admin de rejeter (et pas seulement valider)
-- fonction `is_app_admin()` centralisant la vérification du rôle admin
-- hook `usePendingDocuments` déclenche automatiquement la notification contributeur à `updateStatus`
-- schéma d'analytics simplifié (`db/site_analytics_schema.sql`)
+- `soumis_par` = nom contributeur ou « Anonyme »
+- RLS admin : validation **et** rejet
+- `is_app_admin()` centralisée
+- notification contributeur auto à `updateStatus`
 
 ### Corrigé
 
-- documents de type `Épreuve` (avec accent) qui apparaissaient dans `/ressources` — la comparaison `ILIKE 'epreuve'` ne matchait pas
-- fuites potentielles de l'email contributeur via `select *` public : email isolé dans une table à part avec RLS admin
-- caractères spéciaux `%` et `_` échappés dans les recherches `ilike`
-- normalisation des accents plus fiable via `translate()` (l'extension Postgres `unaccent` seule ne couvrait pas tous les cas Supabase)
+- type `Épreuve` classé à tort dans `/ressources`
+- email contributeur isolé (plus de fuite via `select` public)
+- échappement `%` / `_` dans recherches `ilike`
+- normalisation accents via `translate()` plutôt que `unaccent` seul
 
 ### Sécurité
 
-- `SUPABASE_SERVICE_ROLE_KEY` strictement côté serveur (routes API), jamais exposé au client
-- RLS renforcée sur `submission_contacts` (INSERT public restreint aux documents « En attente », SELECT/UPDATE/DELETE admin uniquement)
-- contrainte de format email en base (`~*` regex)
-- ajout de `SUPABASE_SERVICE_ROLE_KEY` dans `.env.example` avec avertissement
+- `SUPABASE_SERVICE_ROLE_KEY` serveur uniquement
+- RLS `submission_contacts` : INSERT public restreint, SELECT admin
+- regex email en base
 
 ---
 
 ## [0.1.0] - 2026-04-10
 
+**MVP initial** — flux principal bout en bout.
+
 ### Ajouté
 
-- authentification admin (Supabase Auth) avec vérification du rôle
-- protection des routes `/admin/*` via middleware
-- page de login admin (affichage / masquage du mot de passe)
-- création de compte admin (`/admin/register`)
-- mot de passe oublié (`/admin/forgot-password`) + réinitialisation (`/admin/reset-password`)
-- helpers auth (`signUpWithEmail`, `sendPasswordResetEmail`, `updateCurrentUserPassword`)
-- redirection automatique vers le dashboard si admin déjà connecté
-- dashboard admin de modération des soumissions
-- ouverture des documents depuis le dashboard via URL signée Supabase
-- actions de modération : valider / rejeter
-- pages publiques : accueil, liste des épreuves validées avec filtres, liste des ressources validées avec filtres, page de soumission de documents
+- Auth admin Supabase (`user_metadata.role = "admin"`)
+- Pages auth : login, register, forgot/reset password
+- Dashboard admin + modération (valider / rejeter)
+- Ouverture documents via URL signée Storage
+- Pages publiques : accueil, épreuves, ressources, soumettre
+- Filtres catalogue de base
+- Soumission anonyme → statut `En attente` → publication si `Validé`
 
-### Comportement
+### Comportement fondateur (inchangé depuis)
 
-- n'importe qui peut soumettre un document
-- les documents soumis passent en `En attente`
-- un admin valide / rejette
-- les visiteurs voient uniquement les documents `Validé`
+```
+Soumission libre → modération admin obligatoire → catalogue public = Validé uniquement
+```
+
+---
+
+## Guide de lecture pour une reprise ultérieure
+
+| Question | Où regarder |
+|----------|-------------|
+| C'est quoi le projet ? | README — sections « Objectif » et « Ce qui est fait » |
+| Comment démarrer ? | README — « Démarrage rapide » |
+| Quelles variables `.env` ? | README + `.env.example` |
+| Quels scripts SQL exécuter ? | README tableau migrations + fichiers `db/` |
+| Qu'est-ce qui manque ? | CHANGELOG — `[Unreleased]` |
+| Qu'est-ce qui a changé quand ? | CHANGELOG — versions datées |
+| Doublons / backfill ? | `0.2.1` + README section backfill |

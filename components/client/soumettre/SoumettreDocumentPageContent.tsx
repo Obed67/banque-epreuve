@@ -10,15 +10,22 @@ import {
 import { getSubmissionFieldErrors } from "../../../lib/submissionValidation";
 import { notifyAdminOfSubmission } from "../../../lib/notifySubmission";
 import { trackSubmission } from "../../../lib/analytics";
+import { checkDocumentDuplicate } from "@/lib/checkDocumentDuplicate";
+import {
+  computeContentHash,
+  computeDocumentFingerprint,
+} from "@/lib/documentFingerprint";
 import type { ReferentielDocumentField } from "../../../lib/referenceLabels";
 import { suggestReferentielValuesFromClient } from "../../../lib/suggestReferentielClient";
 import { useSubmissionOptions } from "../../../lib/hooks/useSubmissionOptions";
 import SubmissionForm from "./SubmissionForm";
 import SubmissionInfoCard from "./SubmissionInfoCard";
 import SubmissionSuccessDialog from "./SubmissionSuccessDialog";
+import SubmissionDuplicateAlertDialog from "./SubmissionDuplicateAlertDialog";
 import type {
   SubmissionFieldKey,
   SubmissionFormData,
+  SubmissionDuplicateInfo,
   SubmittedInfo,
   SubmissionStatus,
 } from "./types";
@@ -55,6 +62,9 @@ export default function SoumettreDocumentPageContent() {
   const [errorMessage, setErrorMessage] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [successPopupOpen, setSuccessPopupOpen] = useState(false);
+  const [duplicateAlertOpen, setDuplicateAlertOpen] = useState(false);
+  const [duplicateAlertInfo, setDuplicateAlertInfo] =
+    useState<SubmissionDuplicateInfo | null>(null);
   const [submittedInfo, setSubmittedInfo] = useState<SubmittedInfo | null>(
     null,
   );
@@ -192,6 +202,24 @@ export default function SoumettreDocumentPageContent() {
       const titre = getDocumentTitleFromFile(file);
       const storageKey = buildStorageObjectKey(file);
 
+      const [contentHash, fingerprint] = await Promise.all([
+        computeContentHash(file),
+        computeDocumentFingerprint({
+          type: resolvedType,
+          etablissement: resolvedEtablissement,
+          filiere: resolvedFiliere,
+          ue: resolvedUe,
+          annee: resolvedAnnee,
+          niveau: resolvedNiveau,
+          session: formData.session || null,
+        }),
+      ]);
+
+      const duplicateCheck = await checkDocumentDuplicate(
+        contentHash,
+        fingerprint,
+      );
+
       const { error: uploadError } = await supabase.storage
         .from("documents")
         .upload(storageKey, file, {
@@ -239,6 +267,10 @@ export default function SoumettreDocumentPageContent() {
             original_file_name: originalFileName,
             soumis_par: displayName,
             statut: "En attente",
+            content_hash: contentHash,
+            fingerprint,
+            duplicate_of_id: duplicateCheck.existingId ?? null,
+            duplicate_match_type: duplicateCheck.matchType ?? null,
           },
         ])
         .select("id")
@@ -280,8 +312,17 @@ export default function SoumettreDocumentPageContent() {
         annee: resolvedAnnee,
         niveau: resolvedNiveau,
       });
-      setSuccessPopupOpen(true);
       resetForm();
+
+      if (duplicateCheck.isDuplicate && duplicateCheck.matchType) {
+        setDuplicateAlertInfo({
+          matchType: duplicateCheck.matchType,
+          existingTitre: duplicateCheck.existingTitre,
+        });
+        setDuplicateAlertOpen(true);
+      } else {
+        setSuccessPopupOpen(true);
+      }
 
       void notifyAdminOfSubmission({
         documentId: insertedDocument?.id,
@@ -339,6 +380,11 @@ export default function SoumettreDocumentPageContent() {
 
   return (
     <div className="py-8">
+      <SubmissionDuplicateAlertDialog
+        open={duplicateAlertOpen}
+        onOpenChange={setDuplicateAlertOpen}
+        duplicateInfo={duplicateAlertInfo}
+      />
       <SubmissionSuccessDialog
         open={successPopupOpen}
         onOpenChange={setSuccessPopupOpen}

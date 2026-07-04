@@ -1,151 +1,280 @@
 # Banque Epreuve
 
-Plateforme web de partage de documents académiques (épreuves, cours, TD, mémoires, ressources) construite avec **Next.js** (App Router) et **Supabase**. Modération admin obligatoire, référentiels dynamiques, notifications email (Brevo), catalogue public avec recherche insensible aux accents et filtres avancés.
+> 📖 **[Lire le Changelog](./CHANGELOG.md)** — historique des versions, ce qui est fait et ce qui reste.
 
-## Fonctionnement général
+Plateforme web communautaire de partage de documents académiques : épreuves d'examen, cours, TD, mémoires et autres ressources pédagogiques. Les étudiants consultent et soumettent des documents ; une équipe admin modère avant publication.
 
-- Un visiteur soumet un document via `/soumettre` (**anonyme par défaut**, option pour être notifié par email).
-- La soumission arrive avec le statut `En attente` et déclenche une notification email à l'admin.
-- L'admin se connecte via `/admin/login`, consulte les soumissions dans `/admin/documents`, ouvre le fichier, puis **valide** ou **rejette**.
-- Si le contributeur a laissé un email, il reçoit automatiquement un mail (publié ou non).
-- Les visiteurs consultent uniquement les documents `Validé` via `/epreuves` (examens) ou `/ressources` (cours, TD, mémoires, supports).
+**Stack :** Next.js 13 (App Router) · React 18 · TypeScript · Tailwind · Supabase (Auth, Postgres, Storage) · Brevo (emails)
 
-## Fonctionnalités disponibles
+**Version documentée :** voir [CHANGELOG.md](./CHANGELOG.md) — dernière release fonctionnelle **0.2.1** (juillet 2026).
 
-### Public
+---
 
-- Accueil, catalogue épreuves (`/epreuves`) et catalogue ressources (`/ressources`).
-- **Barre de recherche** sur les catalogues (titre, filière, UE, établissement, nom de fichier).
-  - Insensible à la casse et aux accents (`algèbre` = `algebre`).
-  - Debounce 300 ms, RPC serveur `get_catalog_page` en priorité, repli `ilike` côté client si la RPC est indisponible.
-- Filtres par filière, UE, année, niveau, session, établissement, type.
-  - Desktop : grille de sélecteurs inline.
-  - Mobile : bouton « Filtrer » ouvrant un bottom sheet, avec pastilles des filtres actifs.
-- Séparation épreuves / ressources via le champ `type`, avec gestion des variantes d'accents (`Epreuve`, `Épreuve`, `EPREUVE`…).
-- **Soumission de document** (`/soumettre`) :
-  - Formulaire structuré en sections (Document, Établissement et parcours, Formation, Contributeur, Fichier).
-  - Drag & drop du fichier (PDF, DOC, DOCX — max 10 Mo).
-  - Choix ou saisie libre pour chaque référentiel (option « Autre à préciser »).
-  - Retour de succès immédiat, avec envoi des notifications et enregistrement des valeurs libres en arrière-plan.
-  - **Opt-in contributeur** : case pour être notifié par email du résultat (nom affiché optionnel, email optionnel jamais publié).
+## Objectif du projet
 
-### Admin
+Centraliser les documents utiles à la préparation des examens et au travail universitaire, dans un catalogue **fiable et modéré** :
 
-- Connexion / création de compte / mot de passe oublié / réinitialisation.
-- Middleware protégeant `/admin/*` (redirection si non connecté ou non admin).
-- Dashboard `/admin/dashboard` avec statistiques.
-- File de modération `/admin/documents` :
-  - Ouverture du fichier via URL signée Supabase.
-  - **Confirmation avant validation / rejet** (dialog de sécurité).
-  - Envoi automatique d'un email au contributeur (si opt-in) via Brevo.
-- Gestion des référentiels `/admin/referentiels` (types, filières, UE, années, niveaux, établissements).
-- Gestion complète des documents `/admin/documents/tous` (édition, suppression).
-- Ajustement manuel des soumissions type « Autre » proposées par les contributeurs.
+1. **Contribuer facilement** — soumission anonyme ou identifiée, sans compte obligatoire.
+2. **Garantir la qualité** — chaque document passe par une validation admin avant d'être public.
+3. **Retrouver vite** — catalogues séparés (épreuves / ressources), filtres, recherche insensible aux accents.
+4. **Boucler la boucle** — notifications email (admin à la soumission, contributeur opt-in à la validation/rejet).
 
-### Notifications email (Brevo)
+---
 
-- **À la soumission** : mail à l'admin avec tous les champs du document et lien vers la file de modération.
-- **Au contributeur (opt-in)** :
-  - **Validé** : message de remerciement + lien vers le catalogue.
-  - **Rejeté** : message bienveillant listant les causes courantes (document illisible / doublon), encouragements et lien pour re-soumettre.
+## Ce qui est fait aujourd'hui
 
-## Stack technique
+### Côté public
 
-- **Next.js 13** (App Router) + **React 18** + **TypeScript**
-- **Tailwind CSS** + **shadcn/ui** (Radix) + **lucide-react**
-- **Supabase** : Auth, Postgres, Storage, RLS, RPC
-- **Brevo** (Sendinblue) : emails transactionnels
-- **Zod** : validation des payloads API
-- **@tanstack/react-table** : tables admin
-- **Recharts** : statistiques dashboard
+| Route | Description |
+|-------|-------------|
+| `/` | Page d'accueil |
+| `/epreuves` | Catalogue des examens validés + recherche + filtres |
+| `/ressources` | Catalogue des autres documents (cours, TD, mémoires…) |
+| `/soumettre` | Formulaire de soumission (PDF, DOC, DOCX — 10 Mo max) |
 
-## Prérequis
+- Recherche multi-champs, insensible casse et accents.
+- Filtres desktop (grille) et mobile (bottom sheet + pastilles).
+- Soumission avec référentiels dynamiques et option « Autre à préciser ».
+- Opt-in contributeur : nom public optionnel, email privé pour notification du résultat.
+- **Détection des doublons** à la soumission : alerte au contributeur si document similaire ; la soumission n'est pas bloquée.
 
-- Node.js 18+
-- Projet Supabase configuré (URL, anon key, service role key)
-- Compte Brevo avec clé API v3 (`xkeysib-…`) — optionnel mais recommandé pour les notifications
+### Côté admin
 
-## Installation
+| Route | Description |
+|-------|-------------|
+| `/admin/login` | Connexion |
+| `/admin/register` | Création de compte |
+| `/admin/forgot-password` | Mot de passe oublié |
+| `/admin/reset-password` | Réinitialisation via lien email |
+| `/admin/dashboard` | Vue d'ensemble et statistiques |
+| `/admin/documents` | File de modération (valider / rejeter) |
+| `/admin/documents/all` | Gestion complète (édition, suppression) |
+| `/admin/referentiels` | Types, filières, UE, années, niveaux, établissements |
+| `/admin/statistiques` | Graphiques d'activité |
+
+- Badge **doublon** en modération (fichier identique ou même ressource académique).
+- Emails Brevo : notification admin à chaque soumission ; email contributeur si opt-in.
+- Ouverture des fichiers via URL signée Supabase Storage.
+
+### Modèle de données (résumé)
+
+- Table principale **`epreuves`** : métadonnées + `statut` (`En attente` | `Validé` | `Rejeté`) + `content_hash` + `fingerprint` + `duplicate_of_id`.
+- Table **`submission_contacts`** : emails contributeurs (RLS admin uniquement).
+- Tables **référentiels** : `document_types`, `filieres`, `ues`, `annees`, `niveaux`, `etablissements`.
+- Bucket Storage **`documents`** : fichiers uploadés (clé UUID, nom original en base).
+
+---
+
+## Ce qui reste à faire
+
+Voir la section **[Unreleased]** du [CHANGELOG.md](./CHANGELOG.md). En bref :
+
+- Admin principal seedé automatiquement au premier déploiement.
+- Workflow utilisateur : inscription → validation admin → accès.
+- Espace utilisateur connecté, favoris, historique des soumissions.
+- Téléchargement public robuste (Storage + RLS).
+- Motif de rejet personnalisable côté admin, transmis par email.
+
+---
+
+## Démarrage rapide
+
+### 1. Prérequis
+
+- **Node.js 18+**
+- Un **projet Supabase** (gratuit suffit pour démarrer)
+- Un compte **Brevo** (optionnel — sans lui, les soumissions fonctionnent mais pas les emails)
+
+### 2. Cloner et installer
 
 ```bash
+git clone <url-du-repo>
+cd banque-epreuve
 npm install
 ```
 
-## Variables d'environnement
+### 3. Configurer l'environnement
 
-Copier `.env.example` en `.env` et compléter :
-
-```env
-# Supabase (public)
-NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
-
-# Supabase service role — serveur uniquement
-# Requis pour : suggestions de référentiels « Autre », lecture des contacts contributeurs
-SUPABASE_SERVICE_ROLE_KEY=
-
-# URL publique du site (utilisée dans les liens des emails)
-NEXT_PUBLIC_APP_URL=https://votre-domaine.netlify.app
-
-# Brevo — clé API v3 (xkeysib-…) et non SMTP (xsmtpsib-…)
-BREVO_API_KEY=
-BREVO_SENDER_EMAIL=noreply@votre-domaine.com
-BREVO_SENDER_NAME=Banque Epreuve
-ADMIN_NOTIFICATION_EMAIL=admin@votre-domaine.com
+```bash
+cp .env.example .env
 ```
 
-**Ne jamais** commiter le `.env` ni exposer `SUPABASE_SERVICE_ROLE_KEY` côté client.
+Remplir toutes les variables (détail ci-dessous). **Ne jamais commiter `.env`.**
 
-## Migrations SQL
+### 4. Configurer Supabase
 
-Les scripts sont dans le dossier `db/`. Les exécuter dans l'éditeur SQL Supabase, dans cet ordre pour un premier déploiement :
+#### a) Auth — rôle admin
 
-| Fichier | Rôle |
-|---|---|
-| `epreuves_moderation_schema.sql` | Contraintes de statut + policies RLS (validation / rejet par admin) |
-| `epreuves_original_filename.sql` | Colonne `original_file_name` |
-| `submission_reference_schema.sql` | Tables référentiels (types, filières, UE, années) et seed initial |
-| `etablissements_niveaux_migration.sql` | Ajout des tables `etablissements` et `niveaux`, plus colonnes correspondantes sur `epreuves` |
-| `catalog_search_unaccent.sql` | RPC `get_catalog_page` + fonctions de normalisation `fold_search_text` pour la recherche insensible aux accents |
-| `contributor_email_migration.sql` | Table `submission_contacts` (email opt-in du contributeur, RLS admin) |
-| `site_analytics_schema.sql` | Compteurs simples (soumissions par période, contributeurs uniques) |
+Les comptes admin doivent avoir `role: "admin"` dans les **user metadata** Supabase :
 
-## Lancement
+1. Supabase → Authentication → Users
+2. Sélectionner l'utilisateur → **User Metadata** (JSON) :
+   ```json
+   { "role": "admin" }
+   ```
+
+Sans ce champ, l'utilisateur ne peut pas accéder aux pages admin.
+
+#### b) Storage
+
+1. Créer un bucket **`documents`** (privé recommandé).
+2. Configurer les policies pour permettre l'upload public (soumission) et la lecture admin (URLs signées).
+
+#### c) Migrations SQL
+
+Exécuter les scripts du dossier `db/` **dans l'éditeur SQL Supabase**, dans cet ordre :
+
+| Ordre | Fichier | Obligatoire | Rôle |
+|-------|---------|-------------|------|
+| 1 | `epreuves_moderation_schema.sql` | Oui | Statuts + RLS modération |
+| 2 | `epreuves_original_filename.sql` | Oui | Colonne `original_file_name` |
+| 3 | `submission_reference_schema.sql` | Oui | Référentiels + seed |
+| 4 | `etablissements_niveaux_migration.sql` | Oui | Établissements + niveaux |
+| 5 | `catalog_search_unaccent.sql` | Recommandé | Recherche accent-insensible (RPC) |
+| 6 | `contributor_email_migration.sql` | Si opt-in email | Table `submission_contacts` |
+| 7 | `document_duplicate_detection.sql` | Si doublons | Colonnes hash + RPC `check_document_duplicate` |
+| 8 | `site_analytics_schema.sql` | Optionnel | Compteurs analytics |
+
+#### d) Backfill documents existants (si base déjà peuplée)
+
+```sql
+-- Empreintes métier (fingerprint) — SQL Supabase
+-- db/backfill_document_fingerprints.sql
+```
+
+```bash
+# Hash des fichiers (content_hash) — local, nécessite SUPABASE_SERVICE_ROLE_KEY
+npm run backfill:content-hash
+```
+
+### 5. Lancer en local
 
 ```bash
 npm run dev
 ```
 
-## Scripts
+Ouvrir [http://localhost:3000](http://localhost:3000).
+
+### 6. Vérifier que tout fonctionne
+
+- [ ] Page `/epreuves` et `/ressources` chargent (même vides).
+- [ ] Soumission d'un PDF sur `/soumettre` → statut `En attente` en base.
+- [ ] Connexion admin → `/admin/documents` affiche la soumission.
+- [ ] Validation → document visible dans le catalogue public.
+- [ ] (Si Brevo configuré) email reçu à la soumission.
+
+---
+
+## Configuration détaillée
+
+### Variables d'environnement
+
+| Variable | Obligatoire | Description |
+|----------|-------------|-------------|
+| `NEXT_PUBLIC_SUPABASE_URL` | Oui | URL du projet Supabase |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Oui | Clé anon (publique, côté client) |
+| `SUPABASE_SERVICE_ROLE_KEY` | Oui* | Clé service role — **serveur uniquement**. Requise pour référentiels « Autre », contacts contributeurs, backfill hash |
+| `NEXT_PUBLIC_APP_URL` | Recommandé | URL publique du site (liens dans les emails). Ex. `https://mon-site.netlify.app` |
+| `BREVO_API_KEY` | Non | Clé API v3 Brevo (`xkeysib-…`, **pas** `xsmtpsib-…`) |
+| `BREVO_SENDER_EMAIL` | Non | Email expéditeur vérifié dans Brevo |
+| `BREVO_SENDER_NAME` | Non | Nom affiché (défaut : Banque Epreuve) |
+| `ADMIN_NOTIFICATION_EMAIL` | Non | Destinataire des alertes de soumission |
+
+\* Sans service role : soumission et catalogue OK ; suggestions « Autre » et notifications contributeur limitées.
+
+### Brevo (emails)
+
+1. Créer un compte sur [brevo.com](https://www.brevo.com)
+2. Vérifier l'email expéditeur (domaine ou adresse Gmail)
+3. Générer une **clé API v3** : SMTP & API → Clés API → `xkeysib-…`
+4. Renseigner les 4 variables Brevo dans `.env`
+
+### Déploiement (Netlify)
+
+Le projet inclut `netlify.toml` et `@netlify/plugin-nextjs`.
+
+1. Connecter le repo à Netlify
+2. Ajouter **toutes** les variables d'environnement dans Netlify → Site settings → Environment variables
+3. `NEXT_PUBLIC_APP_URL` = URL Netlify du site
+4. Build command : `npm run build` (déjà dans `netlify.toml`)
+
+---
+
+## Scripts npm
 
 | Commande | Description |
-|---|---|
-| `npm run dev` | Serveur de développement |
+|----------|-------------|
+| `npm run dev` | Serveur de développement (port 3000) |
 | `npm run build` | Build de production |
-| `npm run start` | Exécution du build |
-| `npm run lint` | Vérification ESLint |
-| `npm run typecheck` | Vérification TypeScript |
+| `npm run start` | Exécuter le build localement |
+| `npm run lint` | ESLint |
+| `npm run typecheck` | Vérification TypeScript (`tsc --noEmit`) |
+| `npm run backfill:content-hash` | Recalculer `content_hash` des anciens documents depuis Storage |
 
-## Structure
+---
+
+## Structure du projet
 
 ```
 app/
-  (public)/         — pages publiques (accueil, catalogues, soumettre)
-  admin/            — pages admin (auth, dashboard, modération, référentiels)
-  api/              — routes serveur (notify-submission, notify-contributor, suggest-referentiel)
-  components/       — composants partagés (Navbar, Footer, CatalogSearchBar, FilterBar…)
-components/client/  — composants clients riches (formulaires, tables admin, dialogs)
-db/                 — migrations SQL Supabase
-lib/                — helpers, hooks, clients Supabase, wrappers Brevo, validation
+  (public)/              Pages publiques : accueil, épreuves, ressources, soumettre
+  admin/                 Pages admin : auth, dashboard, modération, référentiels, stats
+  api/
+    notify-submission/   Email admin à chaque soumission
+    notify-contributor/  Email contributeur (validé / rejeté)
+    suggest-referentiel/ Enregistrement des valeurs « Autre »
+  components/            Navbar, Footer, CatalogSearchBar, FilterBar, cartes catalogue…
+
+components/client/       Formulaires, tables admin, dialogs (soumission, modération, doublon)
+components/ui/           Composants shadcn/ui (Radix)
+
+db/                      Migrations SQL Supabase (exécuter manuellement)
+scripts/                 Scripts one-shot (ex. backfill content_hash)
+
+lib/
+  hooks/                 useCatalogDocuments, usePendingDocuments, useAdminAuth…
+  brevo/                 Templates et envoi emails
+  documentFingerprint.ts Calcul fingerprint + content_hash
+  checkDocumentDuplicate.ts Appel RPC doublon
+  supabaseClient.ts      Client public
+  supabaseAdmin.ts       Client service role (serveur)
 ```
+
+---
+
+## Flux métier (résumé)
+
+```
+Visiteur → /soumettre → upload Storage + insert epreuves (En attente)
+                    → check doublon (fingerprint + content_hash)
+                    → alerte si doublon OU dialog succès
+                    → email admin (Brevo)
+
+Admin → /admin/documents → voir fichier + badge doublon éventuel
+                        → valider → statut Validé → catalogue public
+                        → rejeter → statut Rejeté → email contributeur si opt-in
+```
+
+---
 
 ## Sécurité et confidentialité
 
-- Emails et noms de contributeurs stockés dans une **table séparée** (`submission_contacts`) avec RLS admin seulement. Jamais exposés au public.
-- Les routes API sensibles (`/api/notify-contributor`, `/api/suggest-referentiel`) utilisent `SUPABASE_SERVICE_ROLE_KEY` **exclusivement côté serveur**.
-- Anti-doublon d'envoi : chaque contact a un `notified_status` qui empêche de renvoyer plusieurs fois le même email en cas de re-validation.
-- Consentement explicite du contributeur via une case à cocher (RGPD-friendly, soumission anonyme par défaut).
+- **RLS** sur toutes les tables sensibles ; le public ne lit que les documents `Validé`.
+- **Emails contributeurs** isolés dans `submission_contacts` — jamais exposés au catalogue.
+- **`SUPABASE_SERVICE_ROLE_KEY`** uniquement dans les routes API serveur, jamais côté client.
+- Soumission **anonyme par défaut** ; consentement explicite pour l'email (RGPD-friendly).
+- Fichiers Storage avec clés UUID (pas de nom prévisible).
 
-## Suivi du projet
+---
 
-Le suivi d'avancement (livré, en cours, roadmap) est maintenu dans `CHANGELOG.md`.
+## Pour aller plus loin
+
+- **Historique des versions et roadmap :** [CHANGELOG.md](./CHANGELOG.md)
+- **Variables d'environnement :** [.env.example](./.env.example)
+- **Migrations base :** dossier `db/`
+
+---
+
+## Licence et contribution
+
+Projet privé / académique. Pour reprendre le projet : lire ce README, exécuter les migrations SQL, configurer `.env`, créer un compte admin avec `role: "admin"`, puis `npm run dev`.

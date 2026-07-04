@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import {
   CheckCircle,
+  Copy,
   ExternalLink,
   MoreHorizontal,
   XCircle,
@@ -24,10 +25,16 @@ type ValidationDocumentsColumnsOptions = {
   processingId: string | null;
   onOpenDocument: (filePath: string) => void;
   onConfirm: (
-    doc: Pick<PendingDocument, "id" | "titre">,
+    doc: PendingDocument,
     action: ModerationConfirmAction,
   ) => void;
 };
+
+function duplicateLabel(matchType: PendingDocument["duplicate_match_type"]) {
+  if (matchType === "exact") return "Fichier identique";
+  if (matchType === "logical") return "Même ressource";
+  return "Possible doublon";
+}
 
 export function useValidationDocumentsColumns({
   processingId,
@@ -39,11 +46,39 @@ export function useValidationDocumentsColumns({
       {
         accessorKey: "titre",
         header: "Titre",
-        cell: ({ row }) => (
-          <span className="font-medium text-[#0f172a]">
-            {row.original.titre}
-          </span>
-        ),
+        cell: ({ row }) => {
+          const doc = row.original;
+          const hasDuplicate = Boolean(doc.duplicate_of_id);
+
+          return (
+            <div className="space-y-1.5">
+              <span className="font-medium text-[#0f172a]">{doc.titre}</span>
+              {hasDuplicate && (
+                <div className="flex flex-col gap-1">
+                  <Badge variant="warning-subtle" className="w-fit">
+                    <Copy className="mr-1 h-3 w-3" />
+                    {duplicateLabel(doc.duplicate_match_type)}
+                  </Badge>
+                  {doc.duplicate_existing && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        onOpenDocument(doc.duplicate_existing!.file_path)
+                      }
+                      className="max-w-[220px] truncate text-left text-xs text-[#0077d2] hover:underline"
+                      title={doc.duplicate_existing.titre}
+                    >
+                      Existant : {doc.duplicate_existing.titre}
+                      {doc.duplicate_existing.statut === "Validé"
+                        ? " (publié)"
+                        : " (en attente)"}
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        },
       },
       {
         accessorKey: "type",

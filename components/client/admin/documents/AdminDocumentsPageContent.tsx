@@ -10,13 +10,14 @@ import DocumentModerationConfirmDialog, {
 import { DataTable } from "@/components/ui/data-table";
 import { useValidationDocumentsColumns } from "@/components/client/admin/documents/validation-documents-columns";
 import { useAdminAuth } from "@/lib/hooks/useAdminAuth";
-import { usePendingDocuments } from "@/lib/hooks/usePendingDocuments";
+import { usePendingDocuments, type PendingDocument } from "@/lib/hooks/usePendingDocuments";
 import { getSupabaseErrorMessage } from "@/lib/supabaseErrors";
 
 type PendingConfirm = {
   id: string;
   titre: string;
   action: ModerationConfirmAction;
+  duplicateWarning?: string | null;
 };
 
 export default function AdminDocumentsPageContent() {
@@ -52,8 +53,19 @@ export default function AdminDocumentsPageContent() {
   };
 
   const openConfirm = useCallback(
-    (doc: { id: string; titre: string }, action: ModerationConfirmAction) => {
-      setPendingConfirm({ id: doc.id, titre: doc.titre, action });
+    (doc: PendingDocument, action: ModerationConfirmAction) => {
+      const duplicateWarning = doc.duplicate_of_id
+        ? doc.duplicate_match_type === "exact"
+          ? `Fichier identique à « ${doc.duplicate_existing?.titre ?? "un document existant"} ».`
+          : `Même ressource académique que « ${doc.duplicate_existing?.titre ?? "un document existant"} ».`
+        : null;
+
+      setPendingConfirm({
+        id: doc.id,
+        titre: doc.titre,
+        action,
+        duplicateWarning,
+      });
     },
     [],
   );
@@ -123,6 +135,7 @@ export default function AdminDocumentsPageContent() {
         }}
         action={pendingConfirm?.action ?? "validate"}
         documentTitle={pendingConfirm?.titre ?? ""}
+        duplicateWarning={pendingConfirm?.duplicateWarning}
         loading={processingId === pendingConfirm?.id}
         onConfirm={handleConfirm}
       />
