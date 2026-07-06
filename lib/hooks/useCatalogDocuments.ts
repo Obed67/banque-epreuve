@@ -4,8 +4,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { GRID_PAGE_SIZE, getTotalPages } from "@/lib/pagination";
 import {
+  applyRessourceTypeExclusion,
   buildEpreuveTypeOrFilter,
-  EPREUVE_TYPE_VARIANTS,
   isEpreuveType,
 } from "@/lib/documentType";
 import { foldSearchText } from "@/lib/searchText";
@@ -55,11 +55,7 @@ function buildBaseQuery(mode: CatalogMode) {
     return query.or(buildEpreuveTypeOrFilter());
   }
 
-  for (const variant of EPREUVE_TYPE_VARIANTS) {
-    query = query.neq("type", variant);
-  }
-
-  return query;
+  return applyRessourceTypeExclusion(query);
 }
 
 function escapeIlikePattern(value: string) {

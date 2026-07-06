@@ -30,7 +30,7 @@ Centraliser les documents utiles à la préparation des examens et au travail un
 | `/` | Page d'accueil |
 | `/epreuves` | Catalogue des examens validés + recherche + filtres |
 | `/ressources` | Catalogue des autres documents (cours, TD, mémoires…) |
-| `/soumettre` | Formulaire de soumission (PDF, DOC, DOCX — 10 Mo max) |
+| `/soumettre` | Formulaire de soumission (PDF, DOC, DOCX — 50 Mo max) |
 
 - Recherche multi-champs, insensible casse et accents.
 - Filtres desktop (grille) et mobile (bottom sheet + pastilles).
@@ -130,7 +130,8 @@ Exécuter les scripts du dossier `db/` **dans l'éditeur SQL Supabase**, dans ce
 | 2 | `epreuves_original_filename.sql` | Oui | Colonne `original_file_name` |
 | 3 | `submission_reference_schema.sql` | Oui | Référentiels + seed |
 | 4 | `etablissements_niveaux_migration.sql` | Oui | Établissements + niveaux |
-| 5 | `catalog_search_unaccent.sql` | Recommandé | Recherche accent-insensible (RPC) |
+| 5 | `catalog_search_unaccent.sql` | Recommandé | Recherche accent-insensible (RPC) — inclut recueils d'épreuves sur `/epreuves` |
+| 5b | `recueil_epreuve_document_type.sql` | Si recueils | Type « Recueil d'épreuve » dans le formulaire de soumission |
 | 6 | `contributor_email_migration.sql` | Si opt-in email | Table `submission_contacts` |
 | 7 | `document_duplicate_detection.sql` | Si doublons | Colonnes hash + RPC `check_document_duplicate` |
 | 8 | `site_analytics_schema.sql` | Optionnel | Compteurs analytics |

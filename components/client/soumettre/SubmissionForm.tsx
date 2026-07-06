@@ -7,8 +7,15 @@ import Button from "../../../app/components/Button";
 import { formLabelErrorClass } from "@/lib/form-styles";
 import { cn } from "@/lib/utils";
 import { FieldCheckbox, FieldInput, FieldSelect } from "./SubmissionFormFields";
-import type { SubmissionFieldKey, SubmissionFormData, SubmissionStatus } from "./types";
+import { Progress } from "../../ui/progress";
+import type {
+  SubmissionFieldKey,
+  SubmissionFormData,
+  SubmissionStatus,
+  SubmissionUploadProgress,
+} from "./types";
 
+import { MAX_SUBMISSION_FILE_SIZE_MB } from "@/lib/fileUpload";
 import { isEpreuveType } from "@/lib/documentType";
 
 const AUTRE = "Autre (à préciser)";
@@ -26,6 +33,7 @@ type SubmissionFormProps = {
   };
   file: File | null;
   status: SubmissionStatus;
+  uploadProgress?: SubmissionUploadProgress | null;
   errorMessage: string;
   onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -67,6 +75,7 @@ export default function SubmissionForm({
   options,
   file,
   status,
+  uploadProgress = null,
   errorMessage,
   onInputChange,
   onFileChange,
@@ -318,7 +327,7 @@ export default function SubmissionForm({
           </div>
         </FormSection>
 
-        <FormSection title="Fichier" hint="PDF, DOC ou DOCX (10 Mo maximum).">
+        <FormSection title="Fichier" hint={`PDF, DOC ou DOCX (${MAX_SUBMISSION_FILE_SIZE_MB} Mo maximum).`}>
           <div
             role="button"
             tabIndex={0}
@@ -365,7 +374,7 @@ export default function SubmissionForm({
               disabled={isUploading || disabled}
               onChange={onFileChange}
             />
-            <p className="mt-1.5 text-sm text-gray-500">PDF, DOC, DOCX (max 10 Mo)</p>
+            <p className="mt-1.5 text-sm text-gray-500">PDF, DOC, DOCX (max {MAX_SUBMISSION_FILE_SIZE_MB} Mo)</p>
             {file && (
               <p className="mt-3 text-sm font-medium text-[#1cb427]">{file.name}</p>
             )}
@@ -384,6 +393,32 @@ export default function SubmissionForm({
           </div>
         )}
 
+        {isUploading && uploadProgress && (
+          <div
+            className="rounded-xl border border-blue-100 bg-blue-50/80 p-4 space-y-3"
+            role="status"
+            aria-live="polite"
+            aria-busy="true"
+          >
+            <div className="flex items-start justify-between gap-3 text-sm">
+              <p className="font-medium text-[#0f172a]">{uploadProgress.label}</p>
+              <span className="shrink-0 tabular-nums font-semibold text-[#0077d2]">
+                {uploadProgress.percent}%
+              </span>
+            </div>
+            <Progress
+              value={uploadProgress.percent}
+              className="h-2.5 bg-blue-100 [&>div]:bg-[#0077d2] [&>div]:transition-all [&>div]:duration-300"
+            />
+            {file && (
+              <p className="truncate text-xs text-gray-500">{file.name}</p>
+            )}
+            <p className="text-xs text-blue-800/80">
+              Ne fermez pas cette page pendant l&apos;envoi.
+            </p>
+          </div>
+        )}
+
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between rounded-xl border border-blue-100 bg-blue-50/80 px-4 py-3 text-sm text-blue-800">
           <p>
             <span className="font-semibold">Vérification :</span> chaque document est
@@ -395,7 +430,11 @@ export default function SubmissionForm({
             className="w-full shrink-0 bg-[#0077d2] text-white hover:bg-[#0062b0] sm:w-auto sm:min-w-[200px]"
             disabled={status === "uploading" || disabled}
           >
-            {status === "uploading" ? "Envoi en cours..." : "Soumettre"}
+            {status === "uploading"
+              ? uploadProgress
+                ? `Envoi… ${uploadProgress.percent}%`
+                : "Envoi en cours..."
+              : "Soumettre"}
           </Button>
         </div>
       </form>

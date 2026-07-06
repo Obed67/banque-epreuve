@@ -72,11 +72,11 @@ begin
       and (
         (
           p_mode = 'epreuves'
-          and e.type in ('Epreuve', 'Épreuve', 'epreuve', 'EPREUVE', 'épreuve')
+          and public.fold_search_text(e.type) like '%epreuve%'
         )
         or (
           p_mode = 'ressources'
-          and e.type not in ('Epreuve', 'Épreuve', 'epreuve', 'EPREUVE', 'épreuve')
+          and public.fold_search_text(e.type) not like '%epreuve%'
         )
       )
       and (p_etablissement is null or e.etablissement = p_etablissement)
