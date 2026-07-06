@@ -7,7 +7,6 @@ import Button from "../../../app/components/Button";
 import { formLabelErrorClass } from "@/lib/form-styles";
 import { cn } from "@/lib/utils";
 import { FieldCheckbox, FieldInput, FieldSelect } from "./SubmissionFormFields";
-import { Progress } from "../../ui/progress";
 import type {
   SubmissionFieldKey,
   SubmissionFormData,
@@ -406,10 +405,19 @@ export default function SubmissionForm({
                 {uploadProgress.percent}%
               </span>
             </div>
-            <Progress
-              value={uploadProgress.percent}
-              className="h-2.5 bg-blue-100 [&>div]:bg-[#0077d2] [&>div]:transition-all [&>div]:duration-300"
-            />
+            <div
+              className="h-2.5 w-full overflow-hidden rounded-full bg-blue-100"
+              role="progressbar"
+              aria-valuenow={uploadProgress.percent}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-label="Progression de l'envoi"
+            >
+              <div
+                className="h-full bg-[#0077d2] transition-all duration-300"
+                style={{ width: `${uploadProgress.percent}%` }}
+              />
+            </div>
             {file && (
               <p className="truncate text-xs text-gray-500">{file.name}</p>
             )}
