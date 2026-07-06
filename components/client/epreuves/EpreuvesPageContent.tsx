@@ -63,7 +63,7 @@ export default function EpreuvesPageContent() {
                   key={epreuve.id}
                   documentId={epreuve.id}
                   titre={epreuve.titre}
-                  badgeLabel={epreuve.session || "Épreuve"}
+                  badgeLabel={epreuve.session || epreuve.type || "Épreuve"}
                   meta={[
                     { label: "Établissement", value: epreuve.etablissement },
                     { label: "Filière", value: epreuve.filiere },

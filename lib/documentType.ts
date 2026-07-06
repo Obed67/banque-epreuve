@@ -7,21 +7,38 @@ export function normalizeTypeKey(value: string) {
     .toLowerCase();
 }
 
-/** Vrai si le libellé correspond à une épreuve (Epreuve, Épreuve, etc.). */
+/** Sous-chaînes reconnues pour classer un document comme épreuve (catalogue / formulaire). */
+export const EPREUVE_TYPE_PATTERN_KEYS = ["epreuve", "épreuve"] as const;
+
+/**
+ * Vrai si le libellé correspond à une épreuve :
+ * Epreuve, Épreuve, Recueil d'épreuve, etc.
+ */
 export function isEpreuveType(value: string) {
   const key = normalizeTypeKey(value);
-  return key === "epreuve" || key.includes("epreuve");
+  if (!key) return false;
+
+  return EPREUVE_TYPE_PATTERN_KEYS.some((pattern) =>
+    key.includes(normalizeTypeKey(pattern)),
+  );
 }
 
-/** Variantes connues pour les filtres PostgREST (sans colonne is_epreuve). */
-export const EPREUVE_TYPE_VARIANTS = [
-  "Epreuve",
-  "Épreuve",
-  "epreuve",
-  "EPREUVE",
-  "épreuve",
-] as const;
-
+/** Filtre PostgREST : types contenant « epreuve » / « épreuve ». */
 export function buildEpreuveTypeOrFilter() {
-  return EPREUVE_TYPE_VARIANTS.map((variant) => `type.eq.${variant}`).join(",");
+  return EPREUVE_TYPE_PATTERN_KEYS.map(
+    (pattern) => `type.ilike.%${pattern}%`,
+  ).join(",");
+}
+
+/** Exclut les épreuves du catalogue ressources (fallback sans RPC SQL). */
+export function applyRessourceTypeExclusion<
+  T extends {
+    not: (column: string, operator: string, value: string) => T;
+  },
+>(query: T): T {
+  let next = query;
+  for (const pattern of EPREUVE_TYPE_PATTERN_KEYS) {
+    next = next.not("type", "ilike", `%${pattern}%`);
+  }
+  return next;
 }

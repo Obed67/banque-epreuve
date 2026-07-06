@@ -35,6 +35,11 @@ export type SubmissionFormData = {
 
 export type SubmissionStatus = "idle" | "uploading" | "error";
 
+export type SubmissionUploadProgress = {
+  percent: number;
+  label: string;
+};
+
 export type SubmittedInfo = {
   titre: string;
   typeDocument: string;

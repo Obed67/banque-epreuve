@@ -4,8 +4,12 @@ import { useState } from "react";
 import { supabase } from "../../../lib/supabaseClient";
 import {
   buildStorageObjectKey,
+  formatFileSize,
   getDocumentTitleFromFile,
   getOriginalFileName,
+  MAX_SUBMISSION_FILE_SIZE_BYTES,
+  MAX_SUBMISSION_FILE_SIZE_MB,
+  uploadSubmissionFile,
 } from "../../../lib/fileUpload";
 import { getSubmissionFieldErrors } from "../../../lib/submissionValidation";
 import { notifyAdminOfSubmission } from "../../../lib/notifySubmission";
@@ -28,6 +32,7 @@ import type {
   SubmissionDuplicateInfo,
   SubmittedInfo,
   SubmissionStatus,
+  SubmissionUploadProgress,
 } from "./types";
 
 const INITIAL_FORM: SubmissionFormData = {
@@ -59,6 +64,8 @@ export default function SoumettreDocumentPageContent() {
   } = useSubmissionOptions();
   const [formData, setFormData] = useState<SubmissionFormData>(INITIAL_FORM);
   const [status, setStatus] = useState<SubmissionStatus>("idle");
+  const [uploadProgress, setUploadProgress] =
+    useState<SubmissionUploadProgress | null>(null);
   const [errorMessage, setErrorMessage] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [successPopupOpen, setSuccessPopupOpen] = useState(false);
@@ -79,6 +86,7 @@ export default function SoumettreDocumentPageContent() {
     setFieldErrors({});
     setErrorMessage("");
     setStatus("idle");
+    setUploadProgress(null);
     setFormKey((current) => current + 1);
   };
 
@@ -110,9 +118,11 @@ export default function SoumettreDocumentPageContent() {
       return;
     }
 
-    if (selected.size > 10 * 1024 * 1024) {
+    if (selected.size > MAX_SUBMISSION_FILE_SIZE_BYTES) {
       setStatus("error");
-      setErrorMessage("Le fichier dépasse la taille maximale de 10 Mo.");
+      setErrorMessage(
+        `Le fichier dépasse la taille maximale de ${MAX_SUBMISSION_FILE_SIZE_MB} Mo.`,
+      );
       return;
     }
 
@@ -194,6 +204,7 @@ export default function SoumettreDocumentPageContent() {
     setFieldErrors({});
     setStatus("uploading");
     setErrorMessage("");
+    setUploadProgress({ percent: 2, label: "Préparation du fichier…" });
 
     if (!file) return;
 
@@ -201,6 +212,8 @@ export default function SoumettreDocumentPageContent() {
       const originalFileName = getOriginalFileName(file);
       const titre = getDocumentTitleFromFile(file);
       const storageKey = buildStorageObjectKey(file);
+
+      setUploadProgress({ percent: 5, label: "Analyse du fichier…" });
 
       const [contentHash, fingerprint] = await Promise.all([
         computeContentHash(file),
@@ -215,34 +228,27 @@ export default function SoumettreDocumentPageContent() {
         }),
       ]);
 
+      setUploadProgress({ percent: 12, label: "Vérification des doublons…" });
+
       const duplicateCheck = await checkDocumentDuplicate(
         contentHash,
         fingerprint,
       );
 
-      const { error: uploadError } = await supabase.storage
-        .from("documents")
-        .upload(storageKey, file, {
-          upsert: false,
-          contentType: file.type,
-          metadata: { originalFileName },
-        });
-      if (uploadError) {
-        if (
-          uploadError.message?.toLowerCase().includes("already exists") ||
-          uploadError.message?.toLowerCase().includes("duplicate")
-        ) {
-          throw new Error(
-            "Un fichier avec ce nom existe déjà. Renommez votre fichier et réessayez.",
-          );
-        }
-        if (uploadError.message?.toLowerCase().includes("invalid key")) {
-          throw new Error(
-            "Impossible d'enregistrer ce fichier. Réessayez ou contactez l'administrateur.",
-          );
-        }
-        throw uploadError;
-      }
+      await uploadSubmissionFile(file, storageKey, {
+        originalFileName,
+        onProgress: (loaded, total) => {
+          const ratio = total > 0 ? loaded / total : 0;
+          const percent = 15 + Math.round(ratio * 75);
+          const label =
+            total > 0
+              ? `Envoi du fichier… (${formatFileSize(loaded)} / ${formatFileSize(total)})`
+              : "Envoi du fichier…";
+          setUploadProgress({ percent, label });
+        },
+      });
+
+      setUploadProgress({ percent: 92, label: "Enregistrement en base…" });
 
       const trimmedContributorName = formData.contributorName.trim();
       const trimmedContributorEmail = formData.contributorEmail.trim();
@@ -370,7 +376,10 @@ export default function SoumettreDocumentPageContent() {
           values: customReferentielValues,
         }).then(() => reloadOptions());
       }
+
+      setUploadProgress(null);
     } catch (error: any) {
+      setUploadProgress(null);
       setStatus("error");
       setErrorMessage(
         error.message || "Une erreur est survenue lors de l'envoi.",
@@ -408,6 +417,7 @@ export default function SoumettreDocumentPageContent() {
             options={options}
             file={file}
             status={status}
+            uploadProgress={uploadProgress}
             errorMessage={errorMessage}
             onInputChange={onInputChange}
             onFileChange={onFileChange}

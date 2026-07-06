@@ -57,10 +57,11 @@ create table if not exists public.etablissements (
 
 insert into public.document_types (code, label, sort_order) values
   ('epreuve','Epreuve',1),
-  ('cours','Cours',2),
-  ('td','TD',3),
-  ('memoire','Memoire',4),
-  ('support','Support',5)
+  ('recueil_epreuve','Recueil d''épreuve',2),
+  ('cours','Cours',3),
+  ('td','TD',4),
+  ('memoire','Memoire',5),
+  ('support','Support',6)
 on conflict (code) do nothing;
 
 insert into public.filieres (code, label, sort_order) values
