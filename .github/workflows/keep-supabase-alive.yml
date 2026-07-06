@@ -1,0 +1,77 @@
+name: Keep Supabase Alive
+
+on:
+  schedule:
+    # Lundi et jeudi à 12h UTC — reste sous la limite des 7 jours d'inactivité Supabase Free
+    - cron: "0 12 * * 1,4"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase REST API
+        id: ping
+        run: |
+          set -euo pipefail
+
+          URL="${SUPABASE_URL%/}/rest/v1/document_types?select=id&limit=1"
+          echo "Requête : GET $URL"
+
+          HTTP_CODE=$(curl -sS -o /tmp/supabase-ping-body.txt -w "%{http_code}" \
+            "$URL" \
+            -H "apikey: ${SUPABASE_ANON_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_ANON_KEY}")
+
+          echo "Code HTTP : $HTTP_CODE"
+          echo "Réponse : $(cat /tmp/supabase-ping-body.txt)"
+
+          if [ "$HTTP_CODE" -lt 200 ] || [ "$HTTP_CODE" -ge 300 ]; then
+            echo "Échec : la base Supabase n'a pas répondu correctement."
+            exit 1
+          fi
+
+          echo "Succès : activité enregistrée sur Supabase."
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+
+  notify:
+    needs: ping
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Envoyer le résultat par email (Brevo)
+        env:
+          BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+          NOTIFY_EMAIL: ${{ secrets.KEEP_ALIVE_NOTIFY_EMAIL }}
+          BREVO_SENDER_EMAIL: ${{ secrets.BREVO_SENDER_EMAIL }}
+          BREVO_SENDER_NAME: ${{ secrets.BREVO_SENDER_NAME }}
+          PING_RESULT: ${{ needs.ping.result }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${NOTIFY_EMAIL}" ] || [ -z "${BREVO_API_KEY}" ]; then
+            echo "Notification email désactivée (ajoutez KEEP_ALIVE_NOTIFY_EMAIL et BREVO_API_KEY dans les secrets GitHub)."
+            exit 0
+          fi
+
+          SENDER_EMAIL="${BREVO_SENDER_EMAIL:-noreply@banque-epreuve.local}"
+          SENDER_NAME="${BREVO_SENDER_NAME:-Banque Epreuve}"
+          RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          DATE_UTC="$(date -u '+%Y-%m-%d %H:%M:%S')"
+
+          if [ "$PING_RESULT" = "success" ]; then
+            SUBJECT="[Banque Epreuve] Keep-alive Supabase — succès"
+            BODY="Le ping automatique Supabase s'est terminé avec succès.<br><br>Date (UTC) : ${DATE_UTC}<br>Résultat : ${PING_RESULT}<br>Workflow : <a href=\"${RUN_URL}\">voir le run GitHub</a>"
+          else
+            SUBJECT="[Banque Epreuve] Keep-alive Supabase — échec"
+            BODY="Le ping automatique Supabase a échoué.<br><br>Date (UTC) : ${DATE_UTC}<br>Résultat : ${PING_RESULT}<br>Workflow : <a href=\"${RUN_URL}\">voir le run GitHub</a><br><br>Vérifiez les secrets SUPABASE_URL et SUPABASE_ANON_KEY, ainsi que l'accès lecture sur document_types."
+          fi
+
+          curl -sS -X POST "https://api.brevo.com/v3/smtp/email" \
+            -H "api-key: ${BREVO_API_KEY}" \
+            -H "Content-Type: application/json" \
+            -d "{\"sender\":{\"name\":\"${SENDER_NAME}\",\"email\":\"${SENDER_EMAIL}\"},\"to\":[{\"email\":\"${NOTIFY_EMAIL}\"}],\"subject\":\"${SUBJECT}\",\"htmlContent\":\"${BODY}\"}"
+
+          echo "Email envoyé à ${NOTIFY_EMAIL} (résultat : ${PING_RESULT})."
