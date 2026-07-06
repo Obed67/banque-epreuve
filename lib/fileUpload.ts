@@ -29,6 +29,11 @@ function mapStorageUploadError(message: string): string {
   return message || "Erreur lors de l'envoi du fichier.";
 }
 
+function encodeMetadataHeaderValue(value: string): string {
+  // Les en-têtes XHR n'acceptent que l'ISO-8859-1 — encoder les accents / Unicode.
+  return encodeURIComponent(value);
+}
+
 /** Upload vers Supabase Storage avec progression (XHR). */
 export async function uploadSubmissionFile(
   file: File,
@@ -63,7 +68,10 @@ export async function uploadSubmissionFile(
       file.type || "application/octet-stream",
     );
     xhr.setRequestHeader("x-upsert", "false");
-    xhr.setRequestHeader("x-metadata-originalFileName", options.originalFileName);
+    xhr.setRequestHeader(
+      "x-metadata-originalfilename",
+      encodeMetadataHeaderValue(options.originalFileName),
+    );
 
     xhr.upload.addEventListener("progress", (event) => {
       if (event.lengthComputable && options.onProgress) {
