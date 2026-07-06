@@ -4,7 +4,7 @@
 
 Plateforme web communautaire de partage de documents académiques : épreuves d'examen, cours, TD, mémoires et autres ressources pédagogiques. Les étudiants consultent et soumettent des documents ; une équipe admin modère avant publication.
 
-**Stack :** Next.js 13 (App Router) · React 18 · TypeScript · Tailwind · Supabase (Auth, Postgres, Storage) · Brevo (emails)
+**Stack :** Next.js 13 (App Router) · React 18 · TypeScript · Tailwind · Supabase (Auth, Postgres, Storage) · Brevo (emails) · Vercel
 
 **Version documentée :** voir [CHANGELOG.md](./CHANGELOG.md) — dernière release fonctionnelle **0.2.1** (juillet 2026).
 
@@ -174,7 +174,7 @@ Ouvrir [http://localhost:3000](http://localhost:3000).
 | `NEXT_PUBLIC_SUPABASE_URL` | Oui | URL du projet Supabase |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Oui | Clé anon (publique, côté client) |
 | `SUPABASE_SERVICE_ROLE_KEY` | Oui* | Clé service role — **serveur uniquement**. Requise pour référentiels « Autre », contacts contributeurs, backfill hash |
-| `NEXT_PUBLIC_APP_URL` | Recommandé | URL publique du site (liens dans les emails). Ex. `https://mon-site.netlify.app` |
+| `NEXT_PUBLIC_APP_URL` | Recommandé | URL publique du site (liens dans les emails). Ex. `https://mon-site.vercel.app` |
 | `BREVO_API_KEY` | Non | Clé API v3 Brevo (`xkeysib-…`, **pas** `xsmtpsib-…`) |
 | `BREVO_SENDER_EMAIL` | Non | Email expéditeur vérifié dans Brevo |
 | `BREVO_SENDER_NAME` | Non | Nom affiché (défaut : Banque Epreuve) |
@@ -189,14 +189,17 @@ Ouvrir [http://localhost:3000](http://localhost:3000).
 3. Générer une **clé API v3** : SMTP & API → Clés API → `xkeysib-…`
 4. Renseigner les 4 variables Brevo dans `.env`
 
-### Déploiement (Netlify)
+### Déploiement (Vercel)
 
-Le projet inclut `netlify.toml` et `@netlify/plugin-nextjs`.
+Le projet est hébergé sur [Vercel](https://vercel.com) (preset Next.js détecté automatiquement).
 
-1. Connecter le repo à Netlify
-2. Ajouter **toutes** les variables d'environnement dans Netlify → Site settings → Environment variables
-3. `NEXT_PUBLIC_APP_URL` = URL Netlify du site
-4. Build command : `npm run build` (déjà dans `netlify.toml`)
+1. Connecter le dépôt GitHub au projet Vercel
+2. Ajouter **toutes** les variables d'environnement dans Vercel → Project → Settings → Environment Variables (Production, Preview et Development selon besoin)
+3. `NEXT_PUBLIC_APP_URL` = URL de production Vercel du site (ex. `https://mon-site.vercel.app`)
+4. Build command : `npm run build` (valeur par défaut Vercel pour Next.js)
+5. Chaque push sur `main` déclenche un déploiement automatique
+
+**Supabase Auth** — dans Supabase → Authentication → URL Configuration, ajouter l'URL Vercel de production (et éventuellement les URLs de preview) dans **Site URL** et **Redirect URLs** pour la connexion admin et la réinitialisation de mot de passe.
 
 ---
 
