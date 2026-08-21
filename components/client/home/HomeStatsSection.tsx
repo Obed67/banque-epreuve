@@ -3,7 +3,7 @@
 import { useHomeStats } from "@/lib/hooks/useHomeStats";
 
 function formatStat(value: number, loading: boolean) {
-  if (loading) return "—";
+  if (loading) return "...";
   if (value <= 0) return "0";
   return `+${value.toLocaleString("fr-FR")}`;
 }

@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
+import ContactDialog from "@/components/client/contact/ContactDialog";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -16,9 +17,9 @@ export default function Navbar() {
   const closeMenu = () => setIsOpen(false);
 
   return (
-    <nav className="bg-[#0077d2] text-white shadow-lg fixed top-0 left-0 right-0 z-50">
+    <nav className="fixed left-0 right-0 top-0 z-50 bg-[#0077d2] text-white shadow-lg">
       <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex h-16 items-center justify-between">
           <Link
             href="/"
             className="flex items-center space-x-2"
@@ -29,11 +30,10 @@ export default function Navbar() {
             </span>
           </Link>
 
-          {/* Desktop Menu */}
-          <div className="hidden md:flex items-center space-x-1">
+          <div className="hidden items-center space-x-1 md:flex">
             <Link
               href="/epreuves"
-              className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
+              className={`flex items-center space-x-2 rounded-lg px-4 py-2 transition-colors ${
                 isActive("/epreuves") ? "bg-white/20" : "hover:bg-white/10"
               }`}
             >
@@ -42,7 +42,7 @@ export default function Navbar() {
 
             <Link
               href="/ressources"
-              className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
+              className={`flex items-center space-x-2 rounded-lg px-4 py-2 transition-colors ${
                 isActive("/ressources") ? "bg-white/20" : "hover:bg-white/10"
               }`}
             >
@@ -51,17 +51,20 @@ export default function Navbar() {
 
             <Link
               href="/soumettre"
-              className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
+              className={`flex items-center space-x-2 rounded-lg px-4 py-2 transition-colors ${
                 isActive("/soumettre") ? "bg-white/20" : "hover:bg-white/10"
               }`}
             >
               <span>Soumettre</span>
             </Link>
+
+            <ContactDialog triggerClassName="flex items-center space-x-2 rounded-lg px-4 py-2 text-white transition-colors hover:bg-white/10">
+              Contact
+            </ContactDialog>
           </div>
 
-          {/* Mobile Menu Button */}
           <button
-            className="md:hidden p-2 rounded-lg hover:bg-white/10 transition-colors focus:outline-none"
+            className="rounded-lg p-2 transition-colors hover:bg-white/10 focus:outline-none md:hidden"
             onClick={() => setIsOpen(!isOpen)}
             aria-label="Menu"
           >
@@ -70,14 +73,13 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobile Menu Overlay */}
       {isOpen && (
-        <div className="md:hidden bg-[#006bbd] border-t border-white/10">
-          <div className="container mx-auto px-4 py-4 space-y-2">
+        <div className="border-t border-white/10 bg-[#006bbd] md:hidden">
+          <div className="container mx-auto space-y-2 px-4 py-4">
             <Link
               href="/epreuves"
               onClick={closeMenu}
-              className={`block px-4 py-3 rounded-lg transition-colors ${
+              className={`block rounded-lg px-4 py-3 transition-colors ${
                 isActive("/epreuves")
                   ? "bg-white/20 font-medium"
                   : "hover:bg-white/10"
@@ -88,7 +90,7 @@ export default function Navbar() {
             <Link
               href="/ressources"
               onClick={closeMenu}
-              className={`block px-4 py-3 rounded-lg transition-colors ${
+              className={`block rounded-lg px-4 py-3 transition-colors ${
                 isActive("/ressources")
                   ? "bg-white/20 font-medium"
                   : "hover:bg-white/10"
@@ -99,7 +101,7 @@ export default function Navbar() {
             <Link
               href="/soumettre"
               onClick={closeMenu}
-              className={`block px-4 py-3 rounded-lg transition-colors ${
+              className={`block rounded-lg px-4 py-3 transition-colors ${
                 isActive("/soumettre")
                   ? "bg-white/20 font-medium"
                   : "hover:bg-white/10"
@@ -107,6 +109,9 @@ export default function Navbar() {
             >
               Soumettre
             </Link>
+            <ContactDialog triggerClassName="block w-full rounded-lg px-4 py-3 text-left text-white transition-colors hover:bg-white/10">
+              Contact
+            </ContactDialog>
           </div>
         </div>
       )}

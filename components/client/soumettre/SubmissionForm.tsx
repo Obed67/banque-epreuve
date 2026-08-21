@@ -16,6 +16,7 @@ import type {
 
 import { MAX_SUBMISSION_FILE_SIZE_MB } from "@/lib/fileUpload";
 import { isEpreuveType } from "@/lib/documentType";
+import LegalDialog from "@/components/client/legal/LegalDialog";
 
 const AUTRE = "Autre (à préciser)";
 
@@ -428,10 +429,29 @@ export default function SubmissionForm({
         )}
 
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between rounded-xl border border-blue-100 bg-blue-50/80 px-4 py-3 text-sm text-blue-800">
-          <p>
-            <span className="font-semibold">Vérification :</span> chaque document est
-            relu avant publication.
-          </p>
+          <div className="space-y-1">
+            <p>
+              <span className="font-semibold">Vérification :</span> chaque document est
+              relu avant publication.
+            </p>
+            <p className="text-xs text-blue-800/80">
+              En soumettant, vous acceptez les{" "}
+              <LegalDialog
+                document="conditions"
+                triggerClassName="font-medium underline hover:text-[#0077d2]"
+              >
+                conditions d&apos;utilisation
+              </LegalDialog>{" "}
+              et la{" "}
+              <LegalDialog
+                document="confidentialite"
+                triggerClassName="font-medium underline hover:text-[#0077d2]"
+              >
+                politique de confidentialité
+              </LegalDialog>
+              .
+            </p>
+          </div>
           <Button
             type="submit"
             size="lg"

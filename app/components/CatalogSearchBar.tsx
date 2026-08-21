@@ -11,7 +11,7 @@ type CatalogSearchBarProps = {
 export default function CatalogSearchBar({
   value,
   onChange,
-  placeholder = "Rechercher (titre, filière, UE…) — sans accent requis",
+  placeholder = "Rechercher (titre, filière, UE…) sans accent requis",
 }: CatalogSearchBarProps) {
   return (
     <div className="mb-4 rounded-xl border border-gray-100 bg-white p-4 shadow-sm md:p-5">
