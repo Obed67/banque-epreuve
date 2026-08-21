@@ -90,6 +90,7 @@ jobs:
           BREVO_SENDER_EMAIL: ${{ secrets.BREVO_SENDER_EMAIL }}
           BREVO_SENDER_NAME: ${{ secrets.BREVO_SENDER_NAME }}
           PING_RESULT: ${{ needs.ping.result }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           set -euo pipefail
 
@@ -98,37 +99,70 @@ jobs:
             exit 0
           fi
 
-          SENDER_EMAIL="${BREVO_SENDER_EMAIL:-}"
-          SENDER_NAME="${BREVO_SENDER_NAME:-Banque Epreuve}"
-
-          if [ -z "$SENDER_EMAIL" ]; then
+          if [ -z "${BREVO_SENDER_EMAIL:-}" ]; then
             echo "BREVO_SENDER_EMAIL manquant : sans expéditeur vérifié, Brevo refuse l'envoi."
             exit 0
           fi
 
-          RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          DATE_UTC="$(date -u '+%Y-%m-%d %H:%M:%S')"
+          # Construire un JSON valide (évite les accents/apostrophes qui cassent -d "...")
+          python3 <<'PY'
+          import json, os, urllib.error, urllib.request
 
-          if [ "$PING_RESULT" = "success" ]; then
-            SUBJECT="[Banque Epreuve] Keep-alive Supabase — succès"
-            BODY="Le ping automatique Supabase s'est terminé avec succès.<br><br>Date (UTC) : ${DATE_UTC}<br>Résultat : ${PING_RESULT}<br>Workflow : <a href=\"${RUN_URL}\">voir le run GitHub</a>"
-          else
-            SUBJECT="[Banque Epreuve] Keep-alive Supabase — échec"
-            BODY="Le ping automatique Supabase a échoué.<br><br>Date (UTC) : ${DATE_UTC}<br>Résultat : ${PING_RESULT}<br>Workflow : <a href=\"${RUN_URL}\">voir le run GitHub</a><br><br>Si le projet est en pause, restaurez-le dans le dashboard Supabase puis relancez ce workflow. Vérifiez aussi SUPABASE_URL et SUPABASE_ANON_KEY."
-          fi
+          ping_result = os.environ["PING_RESULT"]
+          run_url = os.environ["RUN_URL"]
+          date_utc = __import__("datetime").datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+          sender_name = os.environ.get("BREVO_SENDER_NAME") or "Banque Epreuve"
+          sender_email = os.environ["BREVO_SENDER_EMAIL"]
+          notify_email = os.environ["NOTIFY_EMAIL"]
+          api_key = os.environ["BREVO_API_KEY"]
 
-          HTTP_CODE=$(curl -sS -o /tmp/brevo-response.txt -w "%{http_code}" \
-            -X POST "https://api.brevo.com/v3/smtp/email" \
-            -H "api-key: ${BREVO_API_KEY}" \
-            -H "Content-Type: application/json" \
-            -d "{\"sender\":{\"name\":\"${SENDER_NAME}\",\"email\":\"${SENDER_EMAIL}\"},\"to\":[{\"email\":\"${NOTIFY_EMAIL}\"}],\"subject\":\"${SUBJECT}\",\"htmlContent\":\"${BODY}\"}")
+          if ping_result == "success":
+              subject = "[Banque Epreuve] Keep-alive Supabase — succès"
+              body = (
+                  "Le ping automatique Supabase s'est terminé avec succès."
+                  f"<br><br>Date (UTC) : {date_utc}"
+                  f"<br>Résultat : {ping_result}"
+                  f'<br>Workflow : <a href="{run_url}">voir le run GitHub</a>'
+              )
+          else:
+              subject = "[Banque Epreuve] Keep-alive Supabase — échec"
+              body = (
+                  "Le ping automatique Supabase a échoué."
+                  f"<br><br>Date (UTC) : {date_utc}"
+                  f"<br>Résultat : {ping_result}"
+                  f'<br>Workflow : <a href="{run_url}">voir le run GitHub</a>'
+                  "<br><br>Si le projet est en pause, restaurez-le dans le dashboard Supabase "
+                  "puis relancez ce workflow. Vérifiez aussi SUPABASE_URL et SUPABASE_ANON_KEY."
+              )
 
-          echo "Brevo HTTP : $HTTP_CODE"
-          echo "Réponse : $(cat /tmp/brevo-response.txt)"
+          payload = {
+              "sender": {"name": sender_name, "email": sender_email},
+              "to": [{"email": notify_email}],
+              "subject": subject,
+              "htmlContent": body,
+          }
 
-          if [ "$HTTP_CODE" -lt 200 ] || [ "$HTTP_CODE" -ge 300 ]; then
-            echo "Échec d'envoi email Brevo."
-            exit 1
-          fi
+          data = json.dumps(payload).encode("utf-8")
+          req = urllib.request.Request(
+              "https://api.brevo.com/v3/smtp/email",
+              data=data,
+              headers={
+                  "api-key": api_key,
+                  "Content-Type": "application/json",
+                  "Accept": "application/json",
+              },
+              method="POST",
+          )
 
-          echo "Email envoyé à ${NOTIFY_EMAIL} (résultat : ${PING_RESULT})."
+          try:
+              with urllib.request.urlopen(req) as resp:
+                  print(f"Brevo HTTP : {resp.status}")
+                  print(f"Réponse : {resp.read().decode('utf-8', errors='replace')}")
+          except urllib.error.HTTPError as err:
+              print(f"Brevo HTTP : {err.code}")
+              print(f"Réponse : {err.read().decode('utf-8', errors='replace')}")
+              raise SystemExit(1)
+
+          print(f"Email envoyé à {notify_email} (résultat : {ping_result}).")
+          PY
+
