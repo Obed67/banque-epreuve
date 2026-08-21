@@ -1,7 +1,9 @@
 import {
   EMPTY_SITE_ANALYTICS,
+  EMPTY_VISIT_WINDOW,
   type DailyActivityPoint,
   type SiteAnalytics,
+  type VisitWindowStats,
 } from "@/lib/analytics";
 
 export type AnalyticsEventRow = {
@@ -28,6 +30,50 @@ function buildDateRange(periodDays: number): string[] {
   return days;
 }
 
+function shiftDayKey(dayKey: string, deltaDays: number): string {
+  const date = new Date(`${dayKey}T00:00:00.000Z`);
+  date.setUTCDate(date.getUTCDate() + deltaDays);
+  return date.toISOString().slice(0, 10);
+}
+
+function countVisitWindow(
+  visits: AnalyticsEventRow[],
+  predicate: (dayKey: string) => boolean,
+): VisitWindowStats {
+  const filtered = visits.filter((event) => predicate(toDayKey(event.created_at)));
+  return {
+    unique_visitors: new Set(filtered.map((event) => event.session_id)).size,
+    total_visits: filtered.length,
+  };
+}
+
+function parseVisitWindow(value: unknown): VisitWindowStats {
+  if (!value || typeof value !== "object") {
+    return { ...EMPTY_VISIT_WINDOW };
+  }
+  const row = value as Record<string, unknown>;
+  return {
+    unique_visitors: Number(row.unique_visitors) || 0,
+    total_visits: Number(row.total_visits) || 0,
+  };
+}
+
+export function parseSiteAnalyticsSummary(
+  summary: Record<string, unknown>,
+): SiteAnalytics["summary"] {
+  return {
+    unique_visitors: Number(summary.unique_visitors) || 0,
+    total_visits: Number(summary.total_visits) || 0,
+    unique_downloaders: Number(summary.unique_downloaders) || 0,
+    total_downloads: Number(summary.total_downloads) || 0,
+    unique_submitters: Number(summary.unique_submitters) || 0,
+    total_submissions: Number(summary.total_submissions) || 0,
+    visits_today: parseVisitWindow(summary.visits_today),
+    visits_yesterday: parseVisitWindow(summary.visits_yesterday),
+    visits_last_7_days: parseVisitWindow(summary.visits_last_7_days),
+  };
+}
+
 export function aggregateSiteAnalytics(
   events: AnalyticsEventRow[],
   periodDays: number,
@@ -38,6 +84,9 @@ export function aggregateSiteAnalytics(
 
   const range = buildDateRange(periodDays);
   const rangeStart = range[0];
+  const today = range[range.length - 1] ?? new Date().toISOString().slice(0, 10);
+  const yesterday = shiftDayKey(today, -1);
+  const last7Start = shiftDayKey(today, -6);
 
   const inRange = (createdAt: string) => toDayKey(createdAt) >= rangeStart;
 
@@ -92,6 +141,12 @@ export function aggregateSiteAnalytics(
       unique_submitters: new Set(submissions.map((event) => event.session_id))
         .size,
       total_submissions: submissions.length,
+      visits_today: countVisitWindow(visits, (day) => day === today),
+      visits_yesterday: countVisitWindow(visits, (day) => day === yesterday),
+      visits_last_7_days: countVisitWindow(
+        visits,
+        (day) => day >= last7Start && day <= today,
+      ),
     },
     daily_activity: range.map((date) => dailyMap.get(date)!),
     period_days: periodDays,
@@ -101,6 +156,12 @@ export function aggregateSiteAnalytics(
 export function emptySiteAnalytics(periodDays: number): SiteAnalytics {
   return {
     ...EMPTY_SITE_ANALYTICS,
+    summary: {
+      ...EMPTY_SITE_ANALYTICS.summary,
+      visits_today: { ...EMPTY_VISIT_WINDOW },
+      visits_yesterday: { ...EMPTY_VISIT_WINDOW },
+      visits_last_7_days: { ...EMPTY_VISIT_WINDOW },
+    },
     period_days: periodDays,
     daily_activity: buildDateRange(periodDays).map((date) => ({
       date,

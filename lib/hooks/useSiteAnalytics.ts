@@ -5,6 +5,7 @@ import { EMPTY_SITE_ANALYTICS, type SiteAnalytics } from "@/lib/analytics";
 import {
   aggregateSiteAnalytics,
   emptySiteAnalytics,
+  parseSiteAnalyticsSummary,
   type AnalyticsEventRow,
 } from "@/lib/siteAnalyticsAggregator";
 import { supabase } from "@/lib/supabaseClient";
@@ -47,14 +48,7 @@ async function fetchViaRpc(days: number): Promise<SiteAnalytics | null> {
       if (payload.summary && Array.isArray(payload.daily_activity)) {
         const summary = payload.summary as Record<string, unknown>;
         return {
-          summary: {
-            unique_visitors: Number(summary.unique_visitors) || 0,
-            total_visits: Number(summary.total_visits) || 0,
-            unique_downloaders: Number(summary.unique_downloaders) || 0,
-            total_downloads: Number(summary.total_downloads) || 0,
-            unique_submitters: Number(summary.unique_submitters) || 0,
-            total_submissions: Number(summary.total_submissions) || 0,
-          },
+          summary: parseSiteAnalyticsSummary(summary),
           daily_activity: payload.daily_activity.map((row) => {
             const point = row as Record<string, unknown>;
             return {

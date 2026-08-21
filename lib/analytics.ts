@@ -56,13 +56,23 @@ export function trackSubmission(documentId?: string) {
   void insertEvent("submission", documentId ? { documentId } : undefined);
 }
 
+export interface VisitWindowStats {
+  unique_visitors: number;
+  total_visits: number;
+}
+
 export interface SiteAnalyticsSummary {
+  /** Totaux toutes périodes */
   unique_visitors: number;
   total_visits: number;
   unique_downloaders: number;
   total_downloads: number;
   unique_submitters: number;
   total_submissions: number;
+  /** Fenêtres de fréquentation */
+  visits_today: VisitWindowStats;
+  visits_yesterday: VisitWindowStats;
+  visits_last_7_days: VisitWindowStats;
 }
 
 export interface DailyActivityPoint {
@@ -79,6 +89,11 @@ export interface SiteAnalytics {
   period_days: number;
 }
 
+export const EMPTY_VISIT_WINDOW: VisitWindowStats = {
+  unique_visitors: 0,
+  total_visits: 0,
+};
+
 export const EMPTY_SITE_ANALYTICS: SiteAnalytics = {
   summary: {
     unique_visitors: 0,
@@ -87,6 +102,9 @@ export const EMPTY_SITE_ANALYTICS: SiteAnalytics = {
     total_downloads: 0,
     unique_submitters: 0,
     total_submissions: 0,
+    visits_today: { ...EMPTY_VISIT_WINDOW },
+    visits_yesterday: { ...EMPTY_VISIT_WINDOW },
+    visits_last_7_days: { ...EMPTY_VISIT_WINDOW },
   },
   daily_activity: [],
   period_days: 30,
