@@ -3,7 +3,7 @@
 Historique des évolutions de **Banque Epreuve**.  
 Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) · [SemVer](https://semver.org/lang/fr/)
 
-> **État au 4 juillet 2026** — Plateforme fonctionnelle en production-ready : catalogue public, soumission, modération admin, emails Brevo, recherche accent-insensible, détection des doublons. Prochaine étape : espace utilisateur et rôles avancés.
+> **État au 21 août 2026** — Version **0.3.0** en production (Vercel) : catalogue, soumission jusqu’à 50 Mo, stats dynamiques, contact admin, pages légales, keep-alive Supabase, pages d’erreur. Prochaine étape : espace utilisateur et rôles avancés.
 
 ---
 
@@ -31,6 +31,63 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) · [SemVer](ht
 - Version npm dans `package.json` peut diverger du CHANGELOG — se référer à ce fichier pour l'état fonctionnel.
 - Toute migration SQL non exécutée = fonctionnalité partielle (voir README, section migrations).
 - Documents créés **avant juillet 2026** : exécuter `backfill_document_fingerprints.sql` + `npm run backfill:content-hash`.
+
+---
+
+## [0.3.0] - 2026-08-21
+
+Soumission large, stats enrichies, légal & contact, keep-alive Supabase, UX erreur.
+
+### Ajouté
+
+#### Soumission de gros fichiers
+
+- Limite portée à **50 Mo** (`MAX_SUBMISSION_FILE_SIZE_MB`)
+- Barre de **progression** pendant l’envoi (préparation, doublons, upload XHR, enregistrement)
+- Upload Storage avec progression réelle + messages d’étape
+- Encodage des métadonnées fichier (accents / caractères non ISO-8859-1)
+
+#### Recueils d’épreuves
+
+- Type **« Recueil d’épreuve »** traité comme une épreuve (catalogue `/epreuves`, champ session)
+- Filtre catalogue par motif (`type` contenant « epreuve ») côté JS + RPC SQL
+- Migration `db/recueil_epreuve_document_type.sql`
+
+#### Statistiques admin
+
+- Visiteurs : **aujourd’hui**, **hier**, **7 derniers jours**, **total**
+- Compteurs **épreuves publiées** / **ressources publiées**
+- Mise à jour RPC `get_site_analytics` (`db/site_analytics_schema.sql`)
+
+#### Accueil dynamique
+
+- Bandeau stats réel : **Documents**, **Téléchargements**, **Visiteurs**, Gratuit
+- Affichage avec préfixe `+` (ex. `+31`)
+- RPC publique `get_public_home_stats` (`db/public_home_stats.sql`)
+
+#### Légal & contact
+
+- Dialogs CGU et politique de confidentialité (shadcn)
+- Formulaire **Contact admin** (navbar + footer) → email Brevo (`POST /api/contact`)
+- Pages d’erreur **404** (`not-found`) et **500** (`error` / `global-error`)
+
+#### Infrastructure
+
+- Keep-alive Supabase **quotidien** (GitHub Actions) + retries DNS
+- Notification email keep-alive via JSON Python (Brevo)
+- Déploiement documenté sur **Vercel** (retrait Netlify)
+
+### Modifié
+
+- Client Supabase : initialisation différée (build CI sans `.env`)
+- Footer : section Contact + Informations légales
+- README / CHANGELOG alignés sur Vercel et la v0.3.0
+
+### Corrigé
+
+- Build GitHub / Next : `supabaseUrl is required` au prerender
+- Build Progress Radix (minification) → barre CSS native
+- JSON Brevo keep-alive invalide (`Input must be a valid JSON object`)
 
 ---
 
@@ -156,10 +213,11 @@ Soumission libre → modération admin obligatoire → catalogue public = Valid�
 
 | Question | Où regarder |
 |----------|-------------|
-| C'est quoi le projet ? | README — sections « Objectif » et « Ce qui est fait » |
+| C'est quoi le projet ? | [README](./README.md) — sections « Objectif » et « Fonctionnalités » |
 | Comment démarrer ? | README — « Démarrage rapide » |
-| Quelles variables `.env` ? | README + `.env.example` |
+| Quelles variables `.env` ? | README + [`.env.example`](./.env.example) |
 | Quels scripts SQL exécuter ? | README tableau migrations + fichiers `db/` |
 | Qu'est-ce qui manque ? | CHANGELOG — `[Unreleased]` |
 | Qu'est-ce qui a changé quand ? | CHANGELOG — versions datées |
 | Doublons / backfill ? | `0.2.1` + README section backfill |
+| Keep-alive Supabase ? | `0.3.0` + workflow `.github/workflows/keep-supabase-alive.yml` |
