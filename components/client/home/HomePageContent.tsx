@@ -7,6 +7,7 @@ import {
   Search,
 } from "lucide-react";
 import Button from "@/app/components/Button";
+import HomeStatsSection from "./HomeStatsSection";
 
 export default function HomePageContent() {
   return (
@@ -119,44 +120,7 @@ export default function HomePageContent() {
         </div>
       </section>
 
-      <section className="border-y border-gray-100 bg-gray-50 py-12 sm:py-16 md:py-20">
-        <div className="container mx-auto px-0 sm:px-2">
-          <div className="grid grid-cols-2 gap-6 text-center sm:gap-8 md:grid-cols-4">
-            <div>
-              <div className="mb-1 text-3xl font-extrabold tracking-tight text-[#0f172a] sm:mb-2 sm:text-4xl md:text-5xl">
-                250+
-              </div>
-              <div className="text-xs font-semibold uppercase tracking-wider text-gray-500 sm:text-sm">
-                Épreuves
-              </div>
-            </div>
-            <div>
-              <div className="mb-1 text-3xl font-extrabold tracking-tight text-[#0f172a] sm:mb-2 sm:text-4xl md:text-5xl">
-                500+
-              </div>
-              <div className="text-xs font-semibold uppercase tracking-wider text-gray-500 sm:text-sm">
-                Étudiants
-              </div>
-            </div>
-            <div>
-              <div className="mb-1 text-3xl font-extrabold tracking-tight text-[#0f172a] sm:mb-2 sm:text-4xl md:text-5xl">
-                15
-              </div>
-              <div className="text-xs font-semibold uppercase tracking-wider text-gray-500 sm:text-sm">
-                Filières
-              </div>
-            </div>
-            <div>
-              <div className="mb-1 text-3xl font-extrabold tracking-tight text-[#0f172a] sm:mb-2 sm:text-4xl md:text-5xl">
-                100%
-              </div>
-              <div className="text-xs font-semibold uppercase tracking-wider text-gray-500 sm:text-sm">
-                Gratuit
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      <HomeStatsSection />
 
       <section className="py-12 sm:py-16 md:py-24">
         <div className="container mx-auto px-0 sm:px-2">

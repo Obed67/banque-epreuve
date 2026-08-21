@@ -2,6 +2,8 @@
 
 import { useMemo, useState } from "react";
 import {
+  BookOpen,
+  CalendarDays,
   CheckCircle,
   Clock,
   Download,
@@ -10,6 +12,8 @@ import {
   Upload,
   Users,
   XCircle,
+  Calendar,
+  CalendarRange,
 } from "lucide-react";
 import AdminPageShell from "@/components/client/admin/shared/AdminPageShell";
 import { Button } from "@/components/ui/button";
@@ -37,8 +41,12 @@ const PERIOD_OPTIONS = [
   { value: "90", label: "90 derniers jours" },
 ];
 
+function visitHint(unique: number, total: number) {
+  return `${total} visite${total > 1 ? "s" : ""} · ${unique} unique${unique > 1 ? "s" : ""}`;
+}
+
 export default function AdminStatistiquesPageContent() {
-  const [periodDays, setPeriodDays] = useState(30);
+  const [periodDays, setPeriodDays] = useState(7);
   const { userEmail, checkingAuth, logout } = useAdminAuth();
   const { stats, fetchStats } = useAdminStats(!checkingAuth, true);
   const {
@@ -51,16 +59,55 @@ export default function AdminStatistiquesPageContent() {
   const summary = analytics.summary;
   const isLoading = checkingAuth || analyticsLoading;
 
-  const kpiCards = useMemo(
+  const visitorCards = useMemo(
     () => [
       {
-        label: "Visiteurs uniques",
+        label: "Aujourd'hui",
+        value: summary.visits_today.unique_visitors,
+        hint: visitHint(
+          summary.visits_today.unique_visitors,
+          summary.visits_today.total_visits,
+        ),
+        icon: Calendar,
+        color: "text-[#0077d2]",
+        bg: "bg-blue-50",
+      },
+      {
+        label: "Hier",
+        value: summary.visits_yesterday.unique_visitors,
+        hint: visitHint(
+          summary.visits_yesterday.unique_visitors,
+          summary.visits_yesterday.total_visits,
+        ),
+        icon: CalendarDays,
+        color: "text-[#6366f1]",
+        bg: "bg-indigo-50",
+      },
+      {
+        label: "7 derniers jours",
+        value: summary.visits_last_7_days.unique_visitors,
+        hint: visitHint(
+          summary.visits_last_7_days.unique_visitors,
+          summary.visits_last_7_days.total_visits,
+        ),
+        icon: CalendarRange,
+        color: "text-[#0ea5e9]",
+        bg: "bg-sky-50",
+      },
+      {
+        label: "Total visiteurs",
         value: summary.unique_visitors,
-        hint: `${summary.total_visits} visite${summary.total_visits > 1 ? "s" : ""}`,
+        hint: `${summary.total_visits} visite${summary.total_visits > 1 ? "s" : ""} au total`,
         icon: Users,
         color: "text-[#0077d2]",
         bg: "bg-blue-50",
       },
+    ],
+    [summary],
+  );
+
+  const activityCards = useMemo(
+    () => [
       {
         label: "Téléchargeurs",
         value: summary.unique_downloaders,
@@ -78,12 +125,20 @@ export default function AdminStatistiquesPageContent() {
         bg: "bg-amber-50",
       },
       {
-        label: "Documents validés",
-        value: stats.valides,
-        hint: `${stats.total} au total`,
-        icon: CheckCircle,
-        color: "text-[#1cb427]",
-        bg: "bg-green-50",
+        label: "Épreuves publiées",
+        value: stats.epreuvesValides,
+        hint: "Catalogue /epreuves",
+        icon: FileText,
+        color: "text-[#0077d2]",
+        bg: "bg-blue-50",
+      },
+      {
+        label: "Ressources publiées",
+        value: stats.ressourcesValides,
+        hint: "Catalogue /ressources",
+        icon: BookOpen,
+        color: "text-[#8b5cf6]",
+        bg: "bg-violet-50",
       },
     ],
     [summary, stats],
@@ -95,115 +150,145 @@ export default function AdminStatistiquesPageContent() {
 
   return (
     <AdminPageShell userEmail={userEmail} onLogout={logout}>
-          <header className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-            <div>
-              <h1 className="text-3xl font-extrabold text-[#0f172a]">
-                Statistiques
-              </h1>
-              <p className="mt-2 text-gray-500">
-                Vue d&apos;ensemble de la fréquentation et de la modération
-              </p>
-            </div>
+      <header className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <h1 className="text-3xl font-extrabold text-[#0f172a]">
+            Statistiques
+          </h1>
+          <p className="mt-2 text-gray-500">
+            Vue d&apos;ensemble de la fréquentation et de la modération
+          </p>
+        </div>
 
-            <div className="flex flex-wrap items-center gap-3">
-              <Select
-                value={String(periodDays)}
-                onValueChange={(value) => setPeriodDays(Number(value))}
-              >
-                <SelectTrigger className="w-[200px] rounded-xl border-blue-100 bg-white">
-                  <SelectValue placeholder="Période" />
-                </SelectTrigger>
-                <SelectContent>
-                  {PERIOD_OPTIONS.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+        <div className="flex flex-wrap items-center gap-3">
+          <Select
+            value={String(periodDays)}
+            onValueChange={(value) => setPeriodDays(Number(value))}
+          >
+            <SelectTrigger className="w-[200px] rounded-xl border-blue-100 bg-white">
+              <SelectValue placeholder="Période" />
+            </SelectTrigger>
+            <SelectContent>
+              {PERIOD_OPTIONS.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-              <Button
-                type="button"
-                variant="outline"
-                className="rounded-xl border-blue-100 bg-white"
-                onClick={handleRefresh}
-                disabled={isLoading}
-              >
-                <RefreshCw
-                  className={`mr-2 h-4 w-4 ${isLoading ? "animate-spin" : ""}`}
-                />
-                Actualiser
-              </Button>
-            </div>
-          </header>
-
-          {analyticsError && (
-            <div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-              <p>{analyticsError}</p>
-              <p className="mt-2 text-xs text-amber-800">
-                Si le problème persiste, déconnectez-vous puis reconnectez-vous à
-                l&apos;espace admin pour rafraîchir la session.
-              </p>
-            </div>
-          )}
-
-          <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            {kpiCards.map((card) => (
-              <KpiCard key={card.label} {...card} loading={isLoading} />
-            ))}
-          </div>
-
-          <div className="mb-8 grid grid-cols-1 gap-6 xl:grid-cols-3">
-            <div className="xl:col-span-2">
-              <ActivityTrendChart
-                data={analytics.daily_activity}
-                loading={analyticsLoading}
-                periodDays={periodDays}
-              />
-            </div>
-            <AudienceComparisonChart
-              uniqueVisitors={summary.unique_visitors}
-              uniqueDownloaders={summary.unique_downloaders}
-              uniqueSubmitters={summary.unique_submitters}
-              loading={analyticsLoading}
+          <Button
+            type="button"
+            variant="outline"
+            className="rounded-xl border-blue-100 bg-white"
+            onClick={handleRefresh}
+            disabled={isLoading}
+          >
+            <RefreshCw
+              className={`mr-2 h-4 w-4 ${isLoading ? "animate-spin" : ""}`}
             />
-          </div>
+            Actualiser
+          </Button>
+        </div>
+      </header>
 
-          <div className="mb-8">
-            <ActivityAreaChart
-              data={analytics.daily_activity}
-              loading={analyticsLoading}
-              periodDays={periodDays}
-            />
-          </div>
+      {analyticsError && (
+        <div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          <p>{analyticsError}</p>
+          <p className="mt-2 text-xs text-amber-800">
+            Si le problème persiste, déconnectez-vous puis reconnectez-vous à
+            l&apos;espace admin pour rafraîchir la session. Ré-exécutez aussi{" "}
+            <code className="rounded bg-amber-100 px-1">
+              db/site_analytics_schema.sql
+            </code>{" "}
+            pour les fenêtres visiteurs.
+          </p>
+        </div>
+      )}
 
-          <div className="mb-6">
-            <h2 className="mb-4 text-xl font-bold text-[#0f172a]">
-              Modération des documents
-            </h2>
-            <DocumentStatusCharts stats={stats} loading={checkingAuth} />
-          </div>
+      <section className="mb-8">
+        <h2 className="mb-4 text-lg font-bold text-[#0f172a]">Fréquentation</h2>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {visitorCards.map((card) => (
+            <KpiCard key={card.label} {...card} loading={isLoading} />
+          ))}
+        </div>
+      </section>
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <MiniStat
-              label="En attente"
-              value={stats.enAttente}
-              icon={Clock}
-              tone="orange"
-            />
-            <MiniStat
-              label="Validés"
-              value={stats.valides}
-              icon={FileText}
-              tone="green"
-            />
-            <MiniStat
-              label="Rejetés"
-              value={stats.rejetes ?? 0}
-              icon={XCircle}
-              tone="red"
-            />
-          </div>
+      <section className="mb-8">
+        <h2 className="mb-4 text-lg font-bold text-[#0f172a]">
+          Activité et catalogue
+        </h2>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {activityCards.map((card) => (
+            <KpiCard key={card.label} {...card} loading={isLoading} />
+          ))}
+        </div>
+      </section>
+
+      <div className="mb-8 grid grid-cols-1 gap-6 xl:grid-cols-3">
+        <div className="xl:col-span-2">
+          <ActivityTrendChart
+            data={analytics.daily_activity}
+            loading={analyticsLoading}
+            periodDays={periodDays}
+          />
+        </div>
+        <AudienceComparisonChart
+          uniqueVisitors={summary.unique_visitors}
+          uniqueDownloaders={summary.unique_downloaders}
+          uniqueSubmitters={summary.unique_submitters}
+          loading={analyticsLoading}
+        />
+      </div>
+
+      <div className="mb-8">
+        <ActivityAreaChart
+          data={analytics.daily_activity}
+          loading={analyticsLoading}
+          periodDays={periodDays}
+        />
+      </div>
+
+      <div className="mb-6">
+        <h2 className="mb-4 text-xl font-bold text-[#0f172a]">
+          Modération des documents
+        </h2>
+        <DocumentStatusCharts stats={stats} loading={checkingAuth} />
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        <MiniStat
+          label="En attente"
+          value={stats.enAttente}
+          icon={Clock}
+          tone="orange"
+        />
+        <MiniStat
+          label="Validés"
+          value={stats.valides}
+          icon={CheckCircle}
+          tone="green"
+        />
+        <MiniStat
+          label="Épreuves"
+          value={stats.epreuvesValides}
+          icon={FileText}
+          tone="blue"
+        />
+        <MiniStat
+          label="Ressources"
+          value={stats.ressourcesValides}
+          icon={BookOpen}
+          tone="violet"
+        />
+        <MiniStat
+          label="Rejetés"
+          value={stats.rejetes ?? 0}
+          icon={XCircle}
+          tone="red"
+        />
+      </div>
     </AdminPageShell>
   );
 }
@@ -258,7 +343,7 @@ function MiniStat({
   label: string;
   value: number;
   icon: React.ComponentType<{ className?: string }>;
-  tone: "orange" | "green" | "red";
+  tone: "orange" | "green" | "red" | "blue" | "violet";
 }) {
   const toneStyles = {
     orange: {
@@ -272,6 +357,14 @@ function MiniStat({
     red: {
       border: "border-red-100",
       icon: "text-red-500",
+    },
+    blue: {
+      border: "border-blue-100",
+      icon: "text-[#0077d2]",
+    },
+    violet: {
+      border: "border-violet-100",
+      icon: "text-[#8b5cf6]",
     },
   } as const;
 

@@ -69,7 +69,33 @@ begin
       'unique_submitters',
         (select count(distinct session_id) from site_analytics_events where event_type = 'submission'),
       'total_submissions',
-        (select count(*) from site_analytics_events where event_type = 'submission')
+        (select count(*) from site_analytics_events where event_type = 'submission'),
+      'visits_today', json_build_object(
+        'unique_visitors',
+          (select count(distinct session_id) from site_analytics_events
+            where event_type = 'visit' and created_at::date = current_date),
+        'total_visits',
+          (select count(*) from site_analytics_events
+            where event_type = 'visit' and created_at::date = current_date)
+      ),
+      'visits_yesterday', json_build_object(
+        'unique_visitors',
+          (select count(distinct session_id) from site_analytics_events
+            where event_type = 'visit' and created_at::date = current_date - 1),
+        'total_visits',
+          (select count(*) from site_analytics_events
+            where event_type = 'visit' and created_at::date = current_date - 1)
+      ),
+      'visits_last_7_days', json_build_object(
+        'unique_visitors',
+          (select count(distinct session_id) from site_analytics_events
+            where event_type = 'visit'
+              and created_at::date between current_date - 6 and current_date),
+        'total_visits',
+          (select count(*) from site_analytics_events
+            where event_type = 'visit'
+              and created_at::date between current_date - 6 and current_date)
+      )
     ),
     'daily_activity', (
       select coalesce(json_agg(row_to_json(activity) order by activity.date), '[]'::json)

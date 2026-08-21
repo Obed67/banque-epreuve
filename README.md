@@ -132,6 +132,7 @@ Exécuter les scripts du dossier `db/` **dans l'éditeur SQL Supabase**, dans ce
 | 4 | `etablissements_niveaux_migration.sql` | Oui | Établissements + niveaux |
 | 5 | `catalog_search_unaccent.sql` | Recommandé | Recherche accent-insensible (RPC) — inclut recueils d'épreuves sur `/epreuves` |
 | 5b | `recueil_epreuve_document_type.sql` | Si recueils | Type « Recueil d'épreuve » dans le formulaire de soumission |
+| 5c | `public_home_stats.sql` | Recommandé | Compteurs publics page d'accueil (documents, téléchargements, visiteurs) |
 | 6 | `contributor_email_migration.sql` | Si opt-in email | Table `submission_contacts` |
 | 7 | `document_duplicate_detection.sql` | Si doublons | Colonnes hash + RPC `check_document_duplicate` |
 | 8 | `site_analytics_schema.sql` | Optionnel | Compteurs analytics |
