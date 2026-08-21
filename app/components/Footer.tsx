@@ -60,8 +60,7 @@ export default function Footer() {
                 </ContactDialog>
               </li>
               <li className="text-xs leading-relaxed text-gray-500">
-                Questions, signalements ou suggestions : nous répondons par
-                email.
+                Questions, signalements ou suggestion
               </li>
             </ul>
           </div>
