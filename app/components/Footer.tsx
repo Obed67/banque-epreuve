@@ -1,63 +1,99 @@
+"use client";
+
+import Link from "next/link";
+import ContactDialog from "@/components/client/contact/ContactDialog";
+import LegalDialog from "@/components/client/legal/LegalDialog";
+
 export default function Footer() {
   return (
-    <footer className="bg-gray-50 border-t mt-auto">
+    <footer className="mt-auto border-t bg-gray-50">
       <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
           <div>
-            <div className="flex items-center space-x-2 mb-4">
+            <div className="mb-4 flex items-center space-x-2">
               <span className="text-lg font-bold text-gray-800">
-                Portail d&apos;Épreuve
+                Banque Epreuve
               </span>
             </div>
-            <p className="text-gray-600 text-sm">
+            <p className="text-sm text-gray-600">
               Plateforme de gestion et de partage d&apos;épreuves et de
               ressources académiques.
             </p>
           </div>
 
           <div>
-            <h3 className="font-semibold text-gray-800 mb-4">Liens rapides</h3>
+            <h3 className="mb-4 font-semibold text-gray-800">Liens rapides</h3>
             <ul className="space-y-2 text-sm text-gray-600">
               <li>
-                <a
+                <Link
                   href="/epreuves"
-                  className="hover:text-[#0077d2] transition-colors"
+                  className="transition-colors hover:text-[#0077d2]"
                 >
                   Épreuves
-                </a>
+                </Link>
               </li>
               <li>
-                <a
+                <Link
                   href="/ressources"
-                  className="hover:text-[#0077d2] transition-colors"
+                  className="transition-colors hover:text-[#0077d2]"
                 >
                   Ressources
-                </a>
+                </Link>
               </li>
               <li>
-                <a
+                <Link
                   href="/soumettre"
-                  className="hover:text-[#0077d2] transition-colors"
+                  className="transition-colors hover:text-[#0077d2]"
                 >
                   Soumettre un document
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
 
           <div>
-            <h3 className="font-semibold text-gray-800 mb-4">Contact</h3>
-            <p className="text-sm text-gray-600">
-              Pour toute question ou assistance, contactez
-              l&apos;administration.
-            </p>
+            <h3 className="mb-4 font-semibold text-gray-800">Contact</h3>
+            <ul className="space-y-2 text-sm text-gray-600">
+              <li>
+                <ContactDialog triggerClassName="transition-colors hover:text-[#0077d2]">
+                  Écrire à l&apos;administration
+                </ContactDialog>
+              </li>
+              <li className="text-xs leading-relaxed text-gray-500">
+                Questions, signalements ou suggestions : nous répondons par
+                email.
+              </li>
+            </ul>
+          </div>
+
+          <div>
+            <h3 className="mb-4 font-semibold text-gray-800">
+              Informations légales
+            </h3>
+            <ul className="space-y-2 text-sm text-gray-600">
+              <li>
+                <LegalDialog
+                  document="conditions"
+                  triggerClassName="transition-colors hover:text-[#0077d2]"
+                >
+                  Conditions d&apos;utilisation
+                </LegalDialog>
+              </li>
+              <li>
+                <LegalDialog
+                  document="confidentialite"
+                  triggerClassName="transition-colors hover:text-[#0077d2]"
+                >
+                  Politique de confidentialité
+                </LegalDialog>
+              </li>
+            </ul>
           </div>
         </div>
 
         <div className="mt-8 flex flex-col gap-3 border-t pt-6 text-center text-sm text-gray-500 sm:flex-row sm:items-center sm:justify-between sm:text-left">
           <p>
-            © {new Date().getFullYear()} Portail d&apos;Épreuve. Tous droits
-            réservés.
+            © {new Date().getFullYear()} Banque Epreuve. Tous droits réservés.
           </p>
           <p>
             Powered by{" "}
