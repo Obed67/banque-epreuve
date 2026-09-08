@@ -4,15 +4,10 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   images: { unoptimized: true },
-  swcMinify: true,
-  modularizeImports: {
-    "lucide-react": {
-      transform: "lucide-react/dist/esm/icons/{{kebabCase member}}",
-    },
-  },
+  transpilePackages: ["recharts"],
   experimental: {
     optimizeCss: true,
-    optimizePackageImports: ["lucide-react", "date-fns", "recharts"],
+    optimizePackageImports: ["lucide-react", "date-fns"],
   },
 };
 

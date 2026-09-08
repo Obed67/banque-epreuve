@@ -22,7 +22,13 @@ export type DocumentDuplicateCheckResult = {
 };
 
 async function digestSha256Hex(data: ArrayBuffer | Uint8Array): Promise<string> {
-  const buffer = data instanceof Uint8Array ? data.buffer : data;
+  let buffer: ArrayBuffer;
+  if (data instanceof Uint8Array) {
+    buffer = new ArrayBuffer(data.byteLength);
+    new Uint8Array(buffer).set(data);
+  } else {
+    buffer = data;
+  }
   const hashBuffer = await crypto.subtle.digest("SHA-256", buffer);
   return Array.from(new Uint8Array(hashBuffer))
     .map((byte) => byte.toString(16).padStart(2, "0"))

@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import AdminPageShell from "@/components/client/admin/shared/AdminPageShell";
 import AdminKpiCard from "@/components/client/admin/shared/AdminKpiCard";
-import { ActivityTrendChart } from "@/components/client/admin/statistiques/StatsCharts";
+import { ActivityTrendChart } from "@/components/client/admin/statistiques/DynamicStatsCharts";
 import { Button } from "@/components/ui/button";
 import { useAdminAuth } from "@/lib/hooks/useAdminAuth";
 import { useAdminStats } from "@/lib/hooks/useAdminStats";
