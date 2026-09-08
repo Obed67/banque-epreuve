@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import Button from "@/app/components/Button";
 import HomeStatsSection from "./HomeStatsSection";
+import HomeTestimonialsSection from "./HomeTestimonialsSection";
 
 export default function HomePageContent() {
   return (
@@ -121,6 +122,8 @@ export default function HomePageContent() {
       </section>
 
       <HomeStatsSection />
+
+      <HomeTestimonialsSection />
 
       <section className="py-12 sm:py-16 md:py-24">
         <div className="container mx-auto px-0 sm:px-2">
