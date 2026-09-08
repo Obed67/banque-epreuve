@@ -33,7 +33,7 @@ import {
   ActivityTrendChart,
   AudienceComparisonChart,
   DocumentStatusCharts,
-} from "./StatsCharts";
+} from "./DynamicStatsCharts";
 
 const PERIOD_OPTIONS = [
   { value: "7", label: "7 derniers jours" },
@@ -227,19 +227,21 @@ export default function AdminStatistiquesPageContent() {
       </section>
 
       <div className="mb-8 grid grid-cols-1 gap-6 xl:grid-cols-3">
-        <div className="xl:col-span-2">
+        <div className="min-w-0 xl:col-span-2">
           <ActivityTrendChart
             data={analytics.daily_activity}
             loading={analyticsLoading}
             periodDays={periodDays}
           />
         </div>
-        <AudienceComparisonChart
-          uniqueVisitors={summary.unique_visitors}
-          uniqueDownloaders={summary.unique_downloaders}
-          uniqueSubmitters={summary.unique_submitters}
-          loading={analyticsLoading}
-        />
+        <div className="min-w-0">
+          <AudienceComparisonChart
+            uniqueVisitors={summary.unique_visitors}
+            uniqueDownloaders={summary.unique_downloaders}
+            uniqueSubmitters={summary.unique_submitters}
+            loading={analyticsLoading}
+          />
+        </div>
       </div>
 
       <div className="mb-8">

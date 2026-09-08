@@ -76,7 +76,7 @@ export function ActivityTrendChart({
   }
 
   return (
-    <Card className="rounded-2xl border-blue-100 shadow-sm">
+    <Card className="min-w-0 w-full rounded-2xl border-blue-100 shadow-sm">
       <CardHeader>
         <CardTitle className="text-lg text-[#0f172a]">Activité du site</CardTitle>
         <CardDescription>
@@ -145,7 +145,7 @@ export function ActivityAreaChart({
   }
 
   return (
-    <Card className="rounded-2xl border-blue-100 shadow-sm">
+    <Card className="min-w-0 w-full rounded-2xl border-blue-100 shadow-sm">
       <CardHeader>
         <CardTitle className="text-lg text-[#0f172a]">Volume d&apos;activité</CardTitle>
         <CardDescription>
@@ -231,7 +231,7 @@ export function AudienceComparisonChart({
   }
 
   return (
-    <Card className="rounded-2xl border-blue-100 shadow-sm">
+    <Card className="min-w-0 w-full rounded-2xl border-blue-100 shadow-sm">
       <CardHeader>
         <CardTitle className="text-lg text-[#0f172a]">Audience unique</CardTitle>
         <CardDescription>
@@ -305,7 +305,7 @@ export function DocumentStatusCharts({ stats, loading }: DocumentStatusChartsPro
 
   return (
     <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
-      <Card className="rounded-2xl border-blue-100 shadow-sm">
+      <Card className="min-w-0 w-full rounded-2xl border-blue-100 shadow-sm">
         <CardHeader>
           <CardTitle className="text-lg text-[#0f172a]">Répartition des documents</CardTitle>
           <CardDescription>Camembert par statut de modération</CardDescription>
@@ -370,7 +370,7 @@ export function DocumentStatusCharts({ stats, loading }: DocumentStatusChartsPro
         </CardContent>
       </Card>
 
-      <Card className="rounded-2xl border-blue-100 shadow-sm">
+      <Card className="min-w-0 w-full rounded-2xl border-blue-100 shadow-sm">
         <CardHeader>
           <CardTitle className="text-lg text-[#0f172a]">Documents par statut</CardTitle>
           <CardDescription>Histogramme des volumes de modération</CardDescription>
@@ -439,7 +439,7 @@ export function CompactDocumentStatusChart({
   }
 
   return (
-    <Card className="rounded-2xl border-blue-100 shadow-sm">
+    <Card className="min-w-0 w-full rounded-2xl border-blue-100 shadow-sm">
       <CardHeader className="pb-2">
         <CardTitle className="text-lg text-[#0f172a]">État des documents</CardTitle>
         <CardDescription>Répartition du catalogue modéré</CardDescription>
@@ -510,7 +510,7 @@ export function CompactDocumentStatusChart({
 
 function ChartSkeleton({ title, height }: { title: string; height: string }) {
   return (
-    <Card className="rounded-2xl border-blue-100 shadow-sm">
+    <Card className="min-w-0 w-full rounded-2xl border-blue-100 shadow-sm">
       <CardHeader>
         <CardTitle className="text-lg text-[#0f172a]">{title}</CardTitle>
         <Skeleton className="h-4 w-48" />
