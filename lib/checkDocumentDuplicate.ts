@@ -28,7 +28,7 @@ export async function checkDocumentDuplicate(
       typeof data === "string" ? JSON.parse(data) : data
     ) as RpcDuplicateResult | null;
 
-    if (!result?.is_duplicate) {
+    if (!result?.is_duplicate || result.match_type !== "exact") {
       return { isDuplicate: false };
     }
 

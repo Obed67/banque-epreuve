@@ -117,8 +117,10 @@ export function usePendingDocuments(enabled: boolean) {
     setProcessingId(null);
 
     const reason =
-      statut === "Rejeté" && pendingDoc?.duplicate_of_id
-        ? "Ce document est déjà présent dans le catalogue ou un fichier identique a déjà été soumis."
+      statut === "Rejeté" &&
+      pendingDoc?.duplicate_of_id &&
+      pendingDoc.duplicate_match_type === "exact"
+        ? "Ce fichier est identique à un document déjà enregistré."
         : null;
 
     void notifyContributor({ documentId: id, status: statut, reason });

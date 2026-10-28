@@ -104,8 +104,8 @@ function buildRejectedEmailHtml(
           ou fichier corrompu.
         </li>
         <li style="margin-bottom:6px;">
-          <strong>Document déjà présent</strong> : la même épreuve ou ressource existe déjà
-          dans le catalogue.
+          <strong>Fichier déjà présent</strong> : le même fichier (contenu identique) a déjà
+          été envoyé. Un autre document de la même matière n'est pas un doublon.
         </li>
       </ul>
 
