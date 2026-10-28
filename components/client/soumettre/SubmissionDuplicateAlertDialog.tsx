@@ -23,8 +23,6 @@ export default function SubmissionDuplicateAlertDialog({
   onOpenChange,
   duplicateInfo,
 }: SubmissionDuplicateAlertDialogProps) {
-  const isExact = duplicateInfo?.matchType === "exact";
-
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent className="rounded-2xl border-orange-100 sm:max-w-md">
@@ -38,9 +36,8 @@ export default function SubmissionDuplicateAlertDialog({
           <AlertDialogDescription asChild>
             <div className="space-y-3 text-sm text-gray-600">
               <p>
-                {isExact
-                  ? "Le fichier que vous venez d'envoyer est identique à un document déjà enregistré."
-                  : "Un document très similaire (même type, établissement, filière, UE, année et niveau) existe déjà dans notre catalogue."}
+                Le fichier que vous venez d&apos;envoyer est identique à un
+                document déjà enregistré, même s&apos;il porte un autre nom.
               </p>
               {duplicateInfo?.existingTitre && (
                 <p className="rounded-lg border border-orange-100 bg-orange-50 px-3 py-2 font-medium text-[#0f172a]">

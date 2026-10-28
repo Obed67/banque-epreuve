@@ -54,11 +54,10 @@ export default function AdminDocumentsPageContent() {
 
   const openConfirm = useCallback(
     (doc: PendingDocument, action: ModerationConfirmAction) => {
-      const duplicateWarning = doc.duplicate_of_id
-        ? doc.duplicate_match_type === "exact"
+      const duplicateWarning =
+        doc.duplicate_of_id && doc.duplicate_match_type === "exact"
           ? `Fichier identique à « ${doc.duplicate_existing?.titre ?? "un document existant"} ».`
-          : `Même ressource académique que « ${doc.duplicate_existing?.titre ?? "un document existant"} ».`
-        : null;
+          : null;
 
       setPendingConfirm({
         id: doc.id,

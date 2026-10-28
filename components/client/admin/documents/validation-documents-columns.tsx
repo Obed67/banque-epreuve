@@ -32,8 +32,7 @@ type ValidationDocumentsColumnsOptions = {
 
 function duplicateLabel(matchType: PendingDocument["duplicate_match_type"]) {
   if (matchType === "exact") return "Fichier identique";
-  if (matchType === "logical") return "Même ressource";
-  return "Possible doublon";
+  return null;
 }
 
 export function useValidationDocumentsColumns({
@@ -48,7 +47,8 @@ export function useValidationDocumentsColumns({
         header: "Titre",
         cell: ({ row }) => {
           const doc = row.original;
-          const hasDuplicate = Boolean(doc.duplicate_of_id);
+          const duplicateText = duplicateLabel(doc.duplicate_match_type);
+          const hasDuplicate = Boolean(doc.duplicate_of_id && duplicateText);
 
           return (
             <div className="space-y-1.5">
@@ -57,7 +57,7 @@ export function useValidationDocumentsColumns({
                 <div className="flex flex-col gap-1">
                   <Badge variant="warning-subtle" className="w-fit">
                     <Copy className="mr-1 h-3 w-3" />
-                    {duplicateLabel(doc.duplicate_match_type)}
+                    {duplicateText}
                   </Badge>
                   {doc.duplicate_existing && (
                     <button
